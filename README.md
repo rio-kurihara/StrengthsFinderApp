@@ -1,7 +1,7 @@
 # StrengthsFinderApp
 stregths finder visualization in plotly dash
 
-# Run App
+## Run App
 
 ```python dashapp.py```
 
