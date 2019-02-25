@@ -18,6 +18,7 @@ def get_top_content(port):
 def get_summary_content():
     content = """
 ---  
+---  
 ## 資質の平均順位(昇順表示)  
 
 **選択した本部内メンバーの資質の平均順位を表示します**  
@@ -33,6 +34,8 @@ def get_summary_content():
 
 def get_person_content():
     content = '''
+---  
+---  
 # 順位相関(降順表示)  
 
 - 選択した方とそれ以外の方との順位相関を降順表示します
@@ -41,6 +44,8 @@ def get_person_content():
 
 def get_group_content():
     content = '''
+---  
+---  
 # グループの傾向把握
 
 - 選択した方達の全体傾向と個人の傾向を可視化

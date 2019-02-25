@@ -25,11 +25,11 @@ def protect_dashviews(dashapp):
 
 server = Flask(__name__)
 set_port = 55449
+top_text = markdown_txt.get_top_content(set_port)
 
 @server.route('/')
 def index():
-    content_txt = markdown_txt.get_top_content(set_port)
-    content = Markup(markdown.markdown(content_txt))
+    content = Markup(markdown.markdown(top_text))
     return render_template('index.html', **locals())
 
 # =============================
@@ -38,7 +38,8 @@ def index():
 dashapp_summary = dash.Dash(__name__, server=server, url_base_pathname='/dashboard/summary')
 protect_dashviews(dashapp_summary)
 
-md_text = dcc.Markdown(markdown_txt.get_summary_content())
+summary_text = markdown_txt.get_summary_content()
+md_text = dcc.Markdown(top_text + summary_text)
 
 def _calc_rank_mean(df):
     rank_mean = df.groupby('strengths')['rank'].mean().sort_values()
@@ -130,7 +131,8 @@ def update_graph(name):
 dashapp_person = dash.Dash(__name__, server=server, url_base_pathname='/dashboard/person')
 protect_dashviews(dashapp_person)
 
-md_text = dcc.Markdown(markdown_txt.get_person_content())
+person_text = markdown_txt.get_person_content()
+md_text = dcc.Markdown(top_text + person_text)
 
 df_corr_all34 = pd.read_csv('./data/for_plot/df_corr_all34.csv', index_col='index')
 label = df_corr_all34.columns
@@ -191,7 +193,9 @@ def update_graph(name):
 dashapp_group = dash.Dash(__name__, server=server, url_base_pathname='/dashboard/group')
 protect_dashviews(dashapp_group)
 
-md_text = dcc.Markdown(markdown_txt.get_group_content())
+person_text = markdown_txt.get_group_content()
+md_text = dcc.Markdown(top_text + person_text)
+
 # load data
 df_top5 = pd.read_csv('./data/df_top5.csv', index_col='index')
 df_mst = pd.read_csv('./data/mst_category.csv')
