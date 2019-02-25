@@ -16,6 +16,7 @@ from flask import Markup
 from flask import render_template
 from flaskext.markdown import Markdown
 
+from markdown_txt import txt as markdown_txt
 
 def protect_dashviews(dashapp):
     for view_func in dashapp.server.view_functions:
@@ -27,21 +28,8 @@ set_port = 55449
 
 @server.route('/')
 def index():
-    content = """
-## [Top](http://192.168.99.157:{}/)
-
-## DashBoard  
-
-* [Summary](http://192.168.99.157:55449/dashboard/summary)  
-* [Person](http://192.168.99.157:55449/dashboard/person)  
-* [Group](http://192.168.99.157:55449/dashboard/group)  
-
-## Data Upload  
-
-* これから作るよ  
-
-""".format(set_port)
-    content = Markup(markdown.markdown(content))
+    content_txt = markdown_txt.get_top_content(set_port)
+    content = Markup(markdown.markdown(content_txt))
     return render_template('index.html', **locals())
 
 # =============================
@@ -50,19 +38,7 @@ def index():
 dashapp_summary = dash.Dash(__name__, server=server, url_base_pathname='/dashboard/summary')
 protect_dashviews(dashapp_summary)
 
-md_text = dcc.Markdown('''
----  
-## 資質の平均順位(昇順表示)  
-
-**選択した本部内メンバーの資質の平均順位を表示します**  
-
-赤  ： 実行力  (「何かを実行したい」「完遂したい」資質)  
-黄色： 影響力  (「人に影響を与えたい」「人を動かしたい」資質)  
-緑  ： 人間関係構築力  (「人とつながりたい」「関係性を築きたい」資質)  
-青  ： 戦略的思考力  (「考えたい」「頭脳活動をしたい」資質)
-
-グループ分けの意味の詳細は[こちら](https://heart-lab.jp/strengthsfinder/sftheme4groups/)
-''')
+md_text = dcc.Markdown(markdown_txt.get_summary_content())
 
 def _calc_rank_mean(df):
     rank_mean = df.groupby('strengths')['rank'].mean().sort_values()
@@ -154,11 +130,7 @@ def update_graph(name):
 dashapp_person = dash.Dash(__name__, server=server, url_base_pathname='/dashboard/person')
 protect_dashviews(dashapp_person)
 
-md_text = dcc.Markdown('''
-# 順位相関(降順表示)  
-
-- 選択した方とそれ以外の方との順位相関を降順表示します
-''')
+md_text = dcc.Markdown(markdown_txt.get_person_content())
 
 df_corr_all34 = pd.read_csv('./data/for_plot/df_corr_all34.csv', index_col='index')
 label = df_corr_all34.columns
@@ -219,11 +191,7 @@ def update_graph(name):
 dashapp_group = dash.Dash(__name__, server=server, url_base_pathname='/dashboard/group')
 protect_dashviews(dashapp_group)
 
-md_text = dcc.Markdown('''
-# グループの傾向把握
-
-- 選択した方達の全体傾向と個人の傾向を可視化
-''')
+md_text = dcc.Markdown(markdown_txt.get_group_content())
 # load data
 df_top5 = pd.read_csv('./data/df_top5.csv', index_col='index')
 df_mst = pd.read_csv('./data/mst_category.csv')
@@ -237,10 +205,6 @@ dashapp_group.layout = html.Div([
         options=[{'label': i, 'value': i} for i in np.unique(df_top5.index)],
         multi=True,
     ),
-#     dcc.RadioItems(
-#                 id='input_id',
-#                 options=[{'label': i, 'value': i} for i in np.unique(df_top5.index)],
-#                 labelStyle={'width': '49%', 'display': 'inline-block'}),
     dcc.Graph(id='my-graph')]
 )
 
@@ -354,8 +318,6 @@ def update_graph(list_person):
           ),
         )
     )
-
-
     
     return {'data':data, 'layout': layout}
 
