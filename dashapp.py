@@ -2,6 +2,7 @@ import os
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
+import markdown
 import plotly.graph_objs as go
 import numpy as np
 import pandas as pd
@@ -10,8 +11,10 @@ import pickle
 from argparse import ArgumentParser
 from dash.dependencies import Input
 from dash.dependencies import Output
-
-from app import create_app
+from flask import Flask
+from flask import Markup
+from flask import render_template
+from flaskext.markdown import Markdown
 
 
 def protect_dashviews(dashapp):
@@ -19,15 +22,27 @@ def protect_dashviews(dashapp):
         if view_func.startswith(dashapp.url_base_pathname):
             dashapp.server.view_functions[view_func]
 
-server = create_app()
+server = Flask(__name__)
+set_port = 55449
 
-
-# ★TODO：目次が出るようにしたい
 @server.route('/')
-def hello():
-    return 'hello world!'
+def index():
+    content = """
+## [Top](http://192.168.99.157:{}/)
 
+## DashBoard  
 
+* [Summary](http://192.168.99.157:55449/dashboard/summary)  
+* [Person](http://192.168.99.157:55449/dashboard/person)  
+* [Group](http://192.168.99.157:55449/dashboard/group)  
+
+## Data Upload  
+
+* これから作るよ  
+
+""".format(set_port)
+    content = Markup(markdown.markdown(content))
+    return render_template('index.html', **locals())
 
 # =============================
 # Summary Page
@@ -196,6 +211,157 @@ def update_graph(name):
     return {'data':[trace], 'layout': {'height': 800}}
 
 
+
+
+# =============================
+# Group Page
+# =============================
+dashapp_group = dash.Dash(__name__, server=server, url_base_pathname='/dashboard/group')
+protect_dashviews(dashapp_group)
+
+md_text = dcc.Markdown('''
+# グループの傾向把握
+
+- 選択した方達の全体傾向と個人の傾向を可視化
+''')
+# load data
+df_top5 = pd.read_csv('./data/df_top5.csv', index_col='index')
+df_mst = pd.read_csv('./data/mst_category.csv')
+list_category =df_mst['category'].unique()
+dict_strengths_category = df_mst.set_index('strengths')['category'].to_dict()
+
+dashapp_group.layout = html.Div([
+    md_text,
+    dcc.Dropdown(
+        id='input_id',
+        options=[{'label': i, 'value': i} for i in np.unique(df_top5.index)],
+        multi=True,
+    ),
+#     dcc.RadioItems(
+#                 id='input_id',
+#                 options=[{'label': i, 'value': i} for i in np.unique(df_top5.index)],
+#                 labelStyle={'width': '49%', 'display': 'inline-block'}),
+    dcc.Graph(id='my-graph')]
+)
+
+def calc_score(person_name: str):
+    sr_agr_score = df_top5.loc[person_name].groupby('category')['score'].sum()
+    dict_score = sr_agr_score.to_dict()
+    return dict_score
+
+def create_trace(dict_score: dict, person_name: str):    
+    # TOP5に存在しない資質カテゴリはスコアを0にする
+    for _categry in list_category:
+        if not _categry in dict_score:
+            dict_score[_categry] = 0
+    
+    dict_score = dict(sorted(dict_score.items()))
+    trace = go.Scatterpolar(
+        r = list(dict_score.values()),
+        theta = list(dict_score.keys()),
+        fill = 'toself',
+        name = person_name,
+        opacity=0.9,
+        marker = dict(
+            symbol = "square",
+            size = 8
+        ),
+    )
+    
+    return trace
+
+
+@dashapp_group.callback(Output('my-graph', 'figure'), [Input('input_id', 'value')])
+def update_graph(list_person):
+    dict_rank_to_score = {1: 5, 2: 4, 3: 3, 4: 2, 5: 1}
+
+    df_top5['category'] = df_top5[['strengths']].applymap(dict_strengths_category.get)
+    df_top5['score'] = df_top5[['rank']].applymap(dict_rank_to_score.get)
+
+    data = []
+
+    # 初期化
+    dict_scores = {}
+    for _categry in list_category:
+        dict_scores[_categry] = 0
+
+
+    for _person in list_person:
+        dict_score = calc_score(_person)
+        dict_score = dict(sorted(dict_score.items()))
+        for _categry, _score in dict_score.items():
+            dict_scores[_categry] += _score
+
+        trace = create_trace(dict_score, _person)
+        data.append(trace)
+
+    dict_scores = dict(sorted(dict_scores.items()))
+
+    trace0 = go.Scatterpolar(
+        r = list(dict_scores.values()),
+        theta = list(dict_scores.keys()),
+        fill = 'toself',
+        fillcolor = 'gray',
+        name='合計',
+        opacity=0.7,
+        marker = dict(
+            symbol = "square",
+            size = 8
+        ),
+        line=dict(color='black'),
+        subplot='polar2'
+    )
+
+    data.append(trace0)
+
+    ann1 = dict(font=dict(size=14),
+                showarrow=False,
+                text='合計スコア',
+                # Specify text position (place text in a hole of pie)
+                x=0.16,
+                y=1.18
+                )
+    ann2 = dict(font=dict(size=14),
+                showarrow=False,
+                text='各人のスコア',
+                x=0.85,
+                y=1.18
+                )
+
+    layout = go.Layout(
+        annotations=[ann1,ann2],
+        showlegend = True,
+        polar2 = dict(
+          domain = dict(
+            x = [0,0.4],
+            y = [0,1]
+          ),
+          radialaxis = dict(
+            tickfont = dict(
+              size = 8
+            )
+          ),
+        ),
+        polar = dict(
+          domain = dict(
+            x = [0.6,1],
+            y = [0,1]
+          ),
+          radialaxis = dict(
+            tickfont = dict(
+              size = 8
+            )
+          ),
+        )
+    )
+
+
+    
+    return {'data':data, 'layout': layout}
+
+
+
+
 if __name__ == "__main__":
     arg_parser = ArgumentParser(
         usage='Usage: python ' + __file__ + ' [--port <port>] [--help]'
@@ -203,5 +369,5 @@ if __name__ == "__main__":
     arg_parser.add_argument('-p', '--port', default=8000, help='port')
     arg_parser.add_argument('-d', '--debug', default=False, help='debug')
     options = arg_parser.parse_args()
-    port = int(os.environ.get('PORT', 55410))
+    port = int(os.environ.get('PORT', set_port))
     server.run(debug=options.debug, port=port, host='0.0.0.0')
