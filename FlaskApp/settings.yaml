@@ -1,0 +1,21 @@
+data_path:
+  # base_dir: "../data"
+  strengths_csv: "../data/member_strengths.csv"
+  demogra_csv: "../data/member_demogra.csv"
+  top5: "../data/preprocessed/top5.csv"
+  all34: "../data/preprocessed/all34.csv"
+  all34_exsits_null: "../data/preprocessed/all34_exists_null.csv"
+
+  all34_corr: "../data/preprocessed/df_corr_all34.csv"
+  mst_category: "../data/mst/mst_category.csv"
+  mst_message_json: "../data/mst/strengths_message.json"
+  dict_colors_strengths: "../data/mst/dict_colors_strengths.pkl"
+  dict_strengths_desc: "../data/mst/dict_strengths_desc.pkl"
+
+  GS_config: "../analytics/GNN_and_GS/config.yaml"
+
+  upload_dir: "../data/tmp_upload/"
+
+departments: ["AN", "BZ", "CO", "DE", "DS", "HR", "MK", "MP", "退職者"]
+
+port: 00000

@@ -1,0 +1,101 @@
+<html>
+
+<head>
+    <title>Download</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+</head>
+
+<body>
+    <h1>ストレングスファインダーの結果一覧をダウンロード</h1><br>
+    <h2>&#x26a0;注意事項</h2><br>
+    <p><strong>・本サイトからダウンロードしたデータには個人情報が含まれます。取り扱いには十分注意し、<font color="red">社外への情報共有は絶対に行わないでください</font></strong></p>
+    <p><strong>・本サイトで収集したデータは、社内取り扱いのみに限定します</strong></p>
+    <p><strong>・本サイトへのアクセスはBrainPadネットワークのみから許されています</strong></p><br>
+
+    <div class="container">
+        <h3>Sample：所属部署マスタ</h3>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>name</th>
+                    <th>department</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>氏名1</td>
+                    <td>AN</td>
+                </tr>
+                <tr>
+                    <td>氏名2</td>
+                    <td>DE</td>
+                </tr>
+                <tr>
+                    <td>氏名3</td>
+                    <td>DS</td>
+                </tr>
+                <tr>
+                    <td>...</td>
+                    <td>...</td>
+                </tr>
+            </tbody>
+        </table>
+        <form action="/download/master" method="get">
+            <button type="submit" class="btn btn-success btn-lg">Download</button>
+        </form>
+    </div><br><br>
+
+    <div class="container">
+        <h3>Sample：結果一覧</h3>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>rank</th>
+                    <th>氏名1</th>
+                    <th>氏名2</th>
+                    <th>氏名3</th>
+                    <th>...</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th scope="row">1</th>
+                    <td>学習欲</td>
+                    <td>適応性</td>
+                    <td>着想</td>
+                    <td>...</td>
+                </tr>
+                <tr>
+                    <th scope="row">2</th>
+                    <td>内省</td>
+                    <td>アレンジ</td>
+                    <td>学習欲</td>
+                    <td>...</td>
+                </tr>
+                <tr>
+                    <th scope="row">3</th>
+                    <td>コミュニケーション</td>
+                    <td>ポジティブ</td>
+                    <td>収集心</td>
+                    <td>...</td>
+                </tr>
+                <tr>
+                    <th scope="row">...</th>
+                    <td>...</td>
+                    <td>...</td>
+                    <td>...</td>
+                    <td>...</td>
+                </tr>
+            </tbody>
+        </table>
+        <form action="/download/strength" method="get">
+            <button type="submit" class="btn btn-success btn-lg">Download</button>
+        </form>
+    </div><br>
+
+    {{ content }}
+
+</body>
+
+</html>
