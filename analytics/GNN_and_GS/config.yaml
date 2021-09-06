@@ -2,7 +2,8 @@ data_path: "../data/member_strengths.csv"
 user_num: &user_num 200 # 適当に大きい数字にしておくと全社員になる
 strength_num: &strength_num 5
 name_list: &name_list null # Noneはyamlではnull
-num_iter: 20000
+# num_iter: 20000
+num_iter: 6000
 save_pos: False
 save_res: True
 save_res_vec_name: "../data/preprocessed/GAE_vec.csv"

@@ -3,6 +3,4 @@ dash-core-components==0.22.1
 dash-html-components==0.10.1
 Flask==1.0.2
 Markdown==3.0.1
-numpy==1.15.4
-pandas==0.23.4
 plotly==3.6.1

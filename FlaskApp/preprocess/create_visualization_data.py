@@ -1,3 +1,5 @@
+import os
+
 from logging import getLogger
 
 import pandas as pd
@@ -89,6 +91,12 @@ def main():
     df_corr_all34 = calc_corr(df_all34[['strengths', 'rank']])
     df_corr_all34.index.name = 'index'
 
+    # create directory
+    tmp_dir = os.path.dirname(config['data_path']['all34_exsits_null'])
+    if not os.path.exists(tmp_dir):
+        os.mkdir(tmp_dir)
+    del tmp_dir
+    
     # saving
     df_vertical = df_vertical.fillna('nan')
     df_vertical.reset_index().to_csv(
