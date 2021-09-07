@@ -18,7 +18,6 @@ from attrdict import AttrDict
 from dash.dependencies import Input, Output
 from dash_extensions.snippets import send_data_frame
 from flask import Flask, Markup, redirect, render_template, request
-from preprocess import create_visualization_data
 from preprocess.pdf_loader import convert_pdf_to_txt, format_strength
 
 server = Flask(__name__)
@@ -46,7 +45,7 @@ with open(config['data_path']['dict_colors_strengths'], mode='rb') as f:
     dict_colors_strengths = pickle.load(f)
 with open(config['data_path']['dict_strengths_desc'], mode='rb') as f:
     dict_strengths_desc = pickle.load(f)
-with open(config['data_path']['mst_message_json'], 'r') as r:
+with open(config['data_path']['mst_message_json'], 'r', encoding='utf-8') as r:
     dict_strengths_message = json.load(r)
 with open(config['data_path']['GS_config'], 'r', encoding='utf-8') as fi_:
     GS_conf = AttrDict(yaml.load(fi_, Loader=yaml.SafeLoader))

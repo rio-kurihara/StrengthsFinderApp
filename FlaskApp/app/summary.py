@@ -12,7 +12,7 @@ with open('settings.yaml') as f:
 
 # 集計対象の部署名を設定
 departments = config['departments']
-departments.remove("退職者")
+departments.remove("retiree")
 
 
 def get_plot_score_data(sr_score_all, dict_colors_strengths, honbu_name):

@@ -16,6 +16,6 @@ data_path:
 
   upload_dir: "../data/tmp_upload/"
 
-departments: ["AN", "BZ", "CO", "DE", "DS", "HR", "MK", "MP", "退職者"]
+departments: ["AN", "BZ", "CO", "DE", "DS", "HR", "MK", "MP", "retiree"]
 
-port: 00000
+port: 8080
