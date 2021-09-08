@@ -10,7 +10,7 @@ import markdown
 import pandas as pd
 import plotly.graph_objs as go
 import yaml
-from analytics import extract_only_strestrength, lack_strengths_in_group
+from analytics import lack_strengths_in_group
 from analytics.GNN_and_GS import GS
 from app import download, group, help_page, matching, person, summary, top
 from app.utils import create_app, create_content_header, nav_menu
@@ -357,9 +357,9 @@ def update_unique_strestrength(list_person, target_name):
                         [Input('group_persons', 'value'),
                          Input('person_drop_down', 'value')])
 def update_unique_strestrength_1(list_person, target_name):
-    dict_result = extract_only_strestrength.main(
+    dict_result = group.main(
         df_strength, target_name, list_person)
-    text = extract_only_strestrength.create_maerkdown_text(
+    text = group.create_maerkdown_text(
         dict_strengths_message, dict_result, 0, target_name)
     return text
 
@@ -368,12 +368,12 @@ def update_unique_strestrength_1(list_person, target_name):
                         [Input('group_persons', 'value'),
                          Input('person_drop_down', 'value')])
 def update_unique_strestrength_2(list_person, target_name):
-    dict_result = extract_only_strestrength.main(
+    dict_result = group.main(
         df_strength, target_name, list_person)
-    text = extract_only_strestrength.create_maerkdown_text(
+    text = group.create_maerkdown_text(
         dict_strengths_message, dict_result, 1, target_name)
     return text
-
+    
 
 # 不足している資質表示
 topN = 10  # topN位以上の資質が含まれていれば足りない資質ではないとする
