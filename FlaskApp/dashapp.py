@@ -10,7 +10,6 @@ import markdown
 import pandas as pd
 import plotly.graph_objs as go
 import yaml
-from analytics import lack_strengths_in_group
 from analytics.GNN_and_GS import GS
 from app import download, group, help_page, matching, person, summary, top
 from app.utils import create_app, create_content_header, nav_menu
@@ -382,9 +381,9 @@ output_num = 2  # 最大でいくつの資質を出力するか
 @dashapp_group.callback(Output('lack_strengths_1', 'children'),
                         [Input('group_persons', 'value')])
 def update_lack_strength_1(list_person):
-    dict_lack_result = lack_strengths_in_group.main(
+    dict_lack_result = group.lack_strengths_in_group(
         df_all, list_person, topN, output_num)
-    text = lack_strengths_in_group.create_maerkdown_text(
+    text = group.create_maerkdown_text_with_lack(
         dict_strengths_message, dict_lack_result, 0)
     return text
 
@@ -392,9 +391,9 @@ def update_lack_strength_1(list_person):
 @dashapp_group.callback(Output('lack_strengths_2', 'children'),
                         [Input('group_persons', 'value')])
 def update_lack_strength_2(list_person):
-    dict_lack_result = lack_strengths_in_group.main(
+    dict_lack_result = group.lack_strengths_in_group(
         df_all, list_person, topN, output_num)
-    text = lack_strengths_in_group.create_maerkdown_text(
+    text = group.create_maerkdown_text_with_lack(
         dict_strengths_message, dict_lack_result, 1)
     return text
 
