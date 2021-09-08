@@ -4,7 +4,7 @@ from logging import getLogger
 
 import pandas as pd
 import yaml
-from analytics.GNN_and_GS import GAE
+from data_extraction.GNN_and_GS import GAE
 
 logger = getLogger(__name__)
 

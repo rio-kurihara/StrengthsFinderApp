@@ -12,11 +12,11 @@ import plotly.graph_objs as go
 import yaml
 from app import download, group, help_page, matching, person, summary, top
 from app.utils import create_app, create_content_header, nav_menu
+from app.upload import convert_pdf_to_txt, format_strength
 from attrdict import AttrDict
 from dash.dependencies import Input, Output
 from dash_extensions.snippets import send_data_frame
 from flask import Flask, Markup, redirect, render_template, request
-from preprocess.pdf_loader import convert_pdf_to_txt, format_strength
 
 server = Flask(__name__)
 

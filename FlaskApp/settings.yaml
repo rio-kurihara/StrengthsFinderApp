@@ -12,7 +12,7 @@ data_path:
   dict_colors_strengths: "../data/mst/dict_colors_strengths.pkl"
   dict_strengths_desc: "../data/mst/dict_strengths_desc.pkl"
 
-  GS_config: "../analytics/GNN_and_GS/config.yaml"
+  GS_config: "../data_extraction/GNN_and_GS/config.yaml"
 
   upload_dir: "../data/tmp_upload/"
 
