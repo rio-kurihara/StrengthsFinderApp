@@ -10,7 +10,6 @@ import markdown
 import pandas as pd
 import plotly.graph_objs as go
 import yaml
-from analytics.GNN_and_GS import GS
 from app import download, group, help_page, matching, person, summary, top
 from app.utils import create_app, create_content_header, nav_menu
 from attrdict import AttrDict
@@ -431,11 +430,11 @@ def update_matching(check_result, list_personA, list_personB):
     if not check_result == True:
         return {'data': [], 'layout': []}
     else:
-        num_dict = GS.make_dict(df_strength)
+        num_dict = matching.make_dict(df_strength)
         res_mat = np.loadtxt(GS_conf.save_res_cos_name, delimiter=',')
-        set_A, set_B = GS.prefer_order(
+        set_A, set_B = matching.prefer_order(
             list_personA, list_personB, num_dict, res_mat)
-        result = GS.search_stable_matching(set_A, set_B)
+        result = matching.search_stable_matching(set_A, set_B)
 
         df_result = pd.DataFrame.from_dict(
             result, orient='index').reset_index()
