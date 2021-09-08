@@ -1,3 +1,7 @@
+# ----------------------------
+# pdf loader
+# ----------------------------
+
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.converter import TextConverter
 from pdfminer.layout import LAParams
@@ -11,7 +15,7 @@ def convert_pdf_to_txt(path):  # 引数にはPDFファイルパスを指定
     codec = 'utf-8'
     laparams = LAParams()
     laparams.detect_vertical = True  # Trueにすることで綺麗にテキストを抽出できる
-    device = TextConverter(rsrcmgr, retstr, codec=codec, laparams=laparams)
+    device = TextConverter(rsrcmgr, retstr, codec, laparams=laparams)
     fp = open(path, 'rb')
     interpreter = PDFPageInterpreter(rsrcmgr, device)
     maxpages = 0

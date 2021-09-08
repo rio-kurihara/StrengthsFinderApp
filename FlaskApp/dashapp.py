@@ -10,16 +10,13 @@ import markdown
 import pandas as pd
 import plotly.graph_objs as go
 import yaml
-from analytics import extract_only_strestrength, lack_strengths_in_group
-from analytics.GNN_and_GS import GS
 from app import download, group, help_page, matching, person, summary, top
 from app.utils import create_app, create_content_header, nav_menu
+from app.upload import convert_pdf_to_txt, format_strength
 from attrdict import AttrDict
 from dash.dependencies import Input, Output
 from dash_extensions.snippets import send_data_frame
 from flask import Flask, Markup, redirect, render_template, request
-from preprocess import create_visualization_data
-from preprocess.pdf_loader import convert_pdf_to_txt, format_strength
 
 server = Flask(__name__)
 
@@ -46,7 +43,7 @@ with open(config['data_path']['dict_colors_strengths'], mode='rb') as f:
     dict_colors_strengths = pickle.load(f)
 with open(config['data_path']['dict_strengths_desc'], mode='rb') as f:
     dict_strengths_desc = pickle.load(f)
-with open(config['data_path']['mst_message_json'], 'r') as r:
+with open(config['data_path']['mst_message_json'], 'r', encoding='utf-8') as r:
     dict_strengths_message = json.load(r)
 with open(config['data_path']['GS_config'], 'r', encoding='utf-8') as fi_:
     GS_conf = AttrDict(yaml.load(fi_, Loader=yaml.SafeLoader))
@@ -358,9 +355,9 @@ def update_unique_strestrength(list_person, target_name):
                         [Input('group_persons', 'value'),
                          Input('person_drop_down', 'value')])
 def update_unique_strestrength_1(list_person, target_name):
-    dict_result = extract_only_strestrength.main(
+    dict_result = group.main(
         df_strength, target_name, list_person)
-    text = extract_only_strestrength.create_maerkdown_text(
+    text = group.create_maerkdown_text(
         dict_strengths_message, dict_result, 0, target_name)
     return text
 
@@ -369,12 +366,12 @@ def update_unique_strestrength_1(list_person, target_name):
                         [Input('group_persons', 'value'),
                          Input('person_drop_down', 'value')])
 def update_unique_strestrength_2(list_person, target_name):
-    dict_result = extract_only_strestrength.main(
+    dict_result = group.main(
         df_strength, target_name, list_person)
-    text = extract_only_strestrength.create_maerkdown_text(
+    text = group.create_maerkdown_text(
         dict_strengths_message, dict_result, 1, target_name)
     return text
-
+    
 
 # 不足している資質表示
 topN = 10  # topN位以上の資質が含まれていれば足りない資質ではないとする
@@ -383,9 +380,9 @@ output_num = 2  # 最大でいくつの資質を出力するか
 @dashapp_group.callback(Output('lack_strengths_1', 'children'),
                         [Input('group_persons', 'value')])
 def update_lack_strength_1(list_person):
-    dict_lack_result = lack_strengths_in_group.main(
+    dict_lack_result = group.lack_strengths_in_group(
         df_all, list_person, topN, output_num)
-    text = lack_strengths_in_group.create_maerkdown_text(
+    text = group.create_maerkdown_text_with_lack(
         dict_strengths_message, dict_lack_result, 0)
     return text
 
@@ -393,9 +390,9 @@ def update_lack_strength_1(list_person):
 @dashapp_group.callback(Output('lack_strengths_2', 'children'),
                         [Input('group_persons', 'value')])
 def update_lack_strength_2(list_person):
-    dict_lack_result = lack_strengths_in_group.main(
+    dict_lack_result = group.lack_strengths_in_group(
         df_all, list_person, topN, output_num)
-    text = lack_strengths_in_group.create_maerkdown_text(
+    text = group.create_maerkdown_text_with_lack(
         dict_strengths_message, dict_lack_result, 1)
     return text
 
@@ -433,11 +430,11 @@ def update_matching(check_result, list_personA, list_personB):
     if not check_result == True:
         return {'data': [], 'layout': []}
     else:
-        num_dict = GS.make_dict(df_strength)
+        num_dict = matching.make_dict(df_strength)
         res_mat = np.loadtxt(GS_conf.save_res_cos_name, delimiter=',')
-        set_A, set_B = GS.prefer_order(
+        set_A, set_B = matching.prefer_order(
             list_personA, list_personB, num_dict, res_mat)
-        result = GS.search_stable_matching(set_A, set_B)
+        result = matching.search_stable_matching(set_A, set_B)
 
         df_result = pd.DataFrame.from_dict(
             result, orient='index').reset_index()
