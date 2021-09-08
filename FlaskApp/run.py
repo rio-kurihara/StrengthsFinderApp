@@ -1,11 +1,24 @@
-import dash_core_components as dcc
 import dash_html_components as html
 from app import app
+from navigation_menu import nav_menu
 
-app.layout = html.Div([
-    dcc.Location(id='url', refresh=False),
-    html.Div(id='page-content')
-])
+
+header_contents = html.Div(
+    [
+        html.H5('ストレングスファインダーWebAppへようこそ',
+                style=dict(padding="10px", borderLeft="5px #b31b1b solid")),
+        html.P('')
+    ]
+)
+
+
+app.layout = html.Div(
+    [
+        nav_menu,
+        header_contents
+    ],
+    style=dict(margin="50px")
+)
 
 
 if __name__ == '__main__':
