@@ -7,7 +7,7 @@ nav_menu = dbc.Nav(
                     href="/top",
                     external_link=True),
         dbc.NavLink("OverView",
-                    href="/dashboard/overview",
+                    href="/overview",
                     external_link=True),
         dbc.DropdownMenu(
             [

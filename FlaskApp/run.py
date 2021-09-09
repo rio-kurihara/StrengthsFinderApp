@@ -3,7 +3,7 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 
 from app import app
-from apps import top
+from apps import top, overview
 from navigation_menu import nav_menu
 
 
@@ -39,6 +39,8 @@ def display_page(pathname):
         return route_layout
     elif pathname == '/top':
         return top.layout
+    elif pathname == '/overview':
+        return overview.layout_new
     else:
         return '404'
 
