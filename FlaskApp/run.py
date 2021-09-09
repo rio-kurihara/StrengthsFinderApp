@@ -1,7 +1,21 @@
+import dash_core_components as dcc
 import dash_html_components as html
+from dash.dependencies import Input, Output
+
 from app import app
+from apps import top
 from navigation_menu import nav_menu
 
+
+app.layout = html.Div(
+    [
+        nav_menu,
+
+        dcc.Location(id='url', refresh=False),
+        html.Div(id='page-content')
+    ],
+    style=dict(margin="50px")
+)
 
 header_contents = html.Div(
     [
@@ -11,14 +25,22 @@ header_contents = html.Div(
     ]
 )
 
-
-app.layout = html.Div(
+route_layout = html.Div(
     [
-        nav_menu,
-        header_contents
-    ],
-    style=dict(margin="50px")
+        header_contents,
+    ]
 )
+
+
+@app.callback(Output('page-content', 'children'),
+              Input('url', 'pathname'))
+def display_page(pathname):
+    if pathname == '/':
+        return route_layout
+    elif pathname == '/top':
+        return top.layout
+    else:
+        return '404'
 
 
 if __name__ == '__main__':

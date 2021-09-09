@@ -4,7 +4,7 @@ import dash_bootstrap_components as dbc
 nav_menu = dbc.Nav(
     [
         dbc.NavLink("Top",
-                    href="/top/",
+                    href="/top",
                     external_link=True),
         dbc.NavLink("OverView",
                     href="/dashboard/overview",
