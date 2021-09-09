@@ -1,9 +1,12 @@
-import plotly.graph_objs as go
-import yaml
-import pandas as pd
+import copy
 import pickle
+
 import dash_core_components as dcc
 import dash_html_components as html
+import pandas as pd
+import plotly.graph_objs as go
+import yaml
+
 
 # load setting file
 with open('settings.yaml') as f:
@@ -19,14 +22,17 @@ with open(config['data_path']['dict_colors_strengths'], mode='rb') as f:
 departments = config['departments']
 departments.remove("retiree")
 
+# 各部署の資質ごとの順位合計を計算
+rank_sum_each_departments = df_top5.groupby(['department', 'strengths'])['score'].sum()
+# print(departments)
 
-sr_score_all = df_top5.groupby(['department', 'strengths'])['score'].sum()
 
-
-def get_plot_score_data(sr_score_all, dict_colors_strengths, honbu_name):
-    list_honbu = sr_score_all.index.levels[0]
+def get_plot_score_data(rank_sum_each_departments, dict_colors_strengths, honbu_name):
+    # list_honbu = rank_sum_each_departments.index.levels[0]
+    list_honbu = copy.copy(departments)
+    print(list_honbu)
     if honbu_name in list_honbu:
-        sr_score = sr_score_all.loc[honbu_name].sort_values()[::-1]
+        sr_score = rank_sum_each_departments.loc[honbu_name].sort_values()[::-1]
         list_unknown = list(
             set(dict_colors_strengths.keys()) - set(sr_score.index))
         x = list(sr_score.index)
@@ -122,7 +128,7 @@ for i, department in enumerate(departments):
             dcc.Graph(
                 id='score_summary{}'.format(i+1),
                 figure={
-                    'data': get_plot_score_data(sr_score_all, dict_colors_strengths, department),
+                    'data': get_plot_score_data(rank_sum_each_departments, dict_colors_strengths, department),
                     'layout': {
                         'title': '資質の合計スコア({})'.format(department)
                     }
