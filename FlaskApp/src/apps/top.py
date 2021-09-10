@@ -43,7 +43,7 @@ layout = html.Div(
     [
         header_contents,
         top_drop_down_menu,
-        dcc.Graph(id='my-graph'),
+        dcc.Graph(id='strengths-list'),
     ]
 )
 
@@ -97,7 +97,7 @@ def create_strengths_rank_list(df, dict_colors_strengths, dict_strengths_desc, l
     return data
 
 
-@app.callback(Output('my-graph', 'figure'), [Input('input_id', 'value')])
+@app.callback(Output('strengths-list', 'figure'), [Input('input_id', 'value')])
 def update_graph(list_person):
     data = create_strengths_rank_list(
         df_all, dict_colors_strengths, dict_strengths_desc, list_person)

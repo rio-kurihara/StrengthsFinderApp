@@ -11,11 +11,11 @@ nav_menu = dbc.Nav(
                     external_link=True),
         dbc.DropdownMenu(
             [
-                dbc.NavLink("Group",
-                            href="/dashboard/group",
-                            external_link=True),
                 dbc.NavLink("Person",
                             href="/dashboard/person",
+                            external_link=True),
+                dbc.NavLink("Group",
+                            href="/dashboard/group",
                             external_link=True),
                 dbc.NavLink("Matching",
                             href="/dashboard/matching",

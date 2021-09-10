@@ -1,10 +1,10 @@
 import copy
 import pickle
 
-from dash import dcc, html
 import pandas as pd
 import plotly.graph_objs as go
 import yaml
+from dash import dcc, html
 
 
 def create_graph_strengths_rank_sum(rank_sum_each_departments, dict_colors_strengths, department):
