@@ -33,7 +33,7 @@ header_contents = html.Div(
 
 unique_users = np.unique(df_all.index)
 
-top_drop_down_menu = dcc.Dropdown(
+users_drop_down_list = dcc.Dropdown(
     id='input_id',
     options=[{'label': i, 'value': i} for i in unique_users],
     multi=True,
@@ -42,7 +42,7 @@ top_drop_down_menu = dcc.Dropdown(
 layout = html.Div(
     [
         header_contents,
-        top_drop_down_menu,
+        users_drop_down_list,
         dcc.Graph(id='strengths-list'),
     ]
 )

@@ -74,7 +74,7 @@ header_contents = html.Div(
     ]
 )
 
-users_drop_down = dcc.Dropdown(
+users_drop_down_list = dcc.Dropdown(
     id='user-name',
     options=[{'label': i, 'value': i} for i in unique_users],
     multi=False
@@ -83,7 +83,7 @@ users_drop_down = dcc.Dropdown(
 layout = html.Div(
     [
         header_contents,
-        users_drop_down,
+        users_drop_down_list,
         dcc.Graph(id='correlation-table'),
     ]
 )
