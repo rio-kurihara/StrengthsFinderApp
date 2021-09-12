@@ -40,8 +40,8 @@ nav_menu = dbc.Nav(
             label="Data",
             nav=True
         ),
-        dbc.NavLink("Help",
-                    href="/help",
+        dbc.NavLink("Q&A",
+                    href="/QA",
                     external_link=True
                     ),
 

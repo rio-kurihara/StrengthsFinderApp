@@ -1,9 +1,11 @@
+import yaml
 from dash import dcc, html
 from dash.dependencies import Input, Output
 
 from app import app
-from apps import download, matching, overview, person, team, top
+from apps import download, matching, overview, person, qa, team, top
 from navigation_menu import nav_menu
+
 
 app.layout = html.Div(
     [
@@ -47,6 +49,8 @@ def display_page(pathname):
         return matching.layout
     elif pathname == '/data/download':
         return download.layout
+    elif pathname == '/QA':
+        return qa.layout
 
     else:
         return '404'

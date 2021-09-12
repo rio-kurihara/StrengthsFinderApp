@@ -17,5 +17,6 @@ data_path:
   upload_dir: "data/tmp_upload/"
 
 departments: ["AN", "BZ", "CO", "DE", "DS", "HR", "MK", "MP", "retiree"]
+contact: "********@***.co.jp"
 
 port: 8080
