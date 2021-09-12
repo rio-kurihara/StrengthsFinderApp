@@ -1,10 +1,10 @@
 import pickle
 
-from dash import dcc, html
 import numpy as np
 import pandas as pd
 import plotly.graph_objs as go
 import yaml
+from dash import dcc, html
 from dash.dependencies import Input, Output
 
 from app import app

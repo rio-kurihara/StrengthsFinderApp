@@ -2,7 +2,7 @@ from dash import dcc, html
 from dash.dependencies import Input, Output
 
 from app import app
-from apps import overview, person, team, top
+from apps import matching, overview, person, team, top
 from navigation_menu import nav_menu
 
 app.layout = html.Div(
@@ -41,8 +41,10 @@ def display_page(pathname):
         return overview.layout
     elif pathname == '/dashboard/person':
         return person.layout
-    elif pathname == '/dashboard/group':
+    elif pathname == '/dashboard/team':
         return team.layout
+    elif pathname == '/dashboard/matching':
+        return matching.layout
 
     else:
         return '404'
