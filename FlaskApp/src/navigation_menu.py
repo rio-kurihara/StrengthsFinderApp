@@ -27,13 +27,13 @@ nav_menu = dbc.Nav(
         dbc.DropdownMenu(
             [
                 dbc.NavLink("Download",
-                            href="/download",
+                            href="/data/download",
                             external_link=True),
                 dbc.NavLink("Upload",
-                            href="/upload",
+                            href="/data/upload",
                             external_link=True),
                 dbc.NavLink("Edit",
-                            href="/edit",
+                            href="/data/edit",
                             external_link=True,
                             disabled=True),
             ],
