@@ -1,15 +1,12 @@
-# ----------------------------
-# pdf loader
-# ----------------------------
-
-from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
-from pdfminer.converter import TextConverter
-from pdfminer.layout import LAParams
-from pdfminer.pdfpage import PDFPage
 from io import StringIO
 
+from pdfminer.converter import TextConverter
+from pdfminer.layout import LAParams
+from pdfminer.pdfinterp import PDFPageInterpreter, PDFResourceManager
+from pdfminer.pdfpage import PDFPage
 
-def convert_pdf_to_txt(path):  # 引数にはPDFファイルパスを指定
+
+def pdf_to_txt(path):  # 引数にはPDFファイルパスを指定
     rsrcmgr = PDFResourceManager()
     retstr = StringIO()
     codec = 'utf-8'
@@ -22,6 +19,7 @@ def convert_pdf_to_txt(path):  # 引数にはPDFファイルパスを指定
     caching = True
     pagenos = set()
     fstr = ''
+
     for page in PDFPage.get_pages(fp, pagenos, maxpages=maxpages, caching=caching, check_extractable=True):
         interpreter.process_page(page)
 
@@ -35,7 +33,7 @@ def convert_pdf_to_txt(path):  # 引数にはPDFファイルパスを指定
     return fstr
 
 
-def format_strength(txt):
+def txt_to_dict_format(txt):
     txt1 = txt.split('\n')
     list_strength = []
     dict_results = {'status': None,

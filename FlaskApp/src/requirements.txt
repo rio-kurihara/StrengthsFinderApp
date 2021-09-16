@@ -1,0 +1,14 @@
+dash==2.0.0
+dash-core-components==2.0.0
+dash-html-components==2.0.0
+dash_renderer==1.9.1
+dash_bootstrap_components==0.13.0
+dash_extensions==0.0.60
+Flask==2.0.1
+Markdown==3.0.1
+matplotlib==3.3.0
+numpy==1.19.0
+pandas==1.0.5
+pdfminer.six==20201018
+plotly==5.3.1
+seaborn==0.11.2
