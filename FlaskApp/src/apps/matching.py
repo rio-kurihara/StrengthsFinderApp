@@ -183,7 +183,8 @@ layout = html.Div(
         dcc.Graph(id='matching',
                   responsive=True,
                   )
-    ], style=dict(margin="50px"))
+    ]
+)
 
 
 @app.callback(Output('matching_check', 'children'),
@@ -257,7 +258,5 @@ def update_matching(check_result, list_userA, list_userB):
                        dtick=1
                        )
         )
-
-        # print(data)
 
         return {'data': data, 'layout': layout}

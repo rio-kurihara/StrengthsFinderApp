@@ -30,6 +30,5 @@ layout = html.Div(
         html.P('作成中'),
 
         contact_contents,
-    ],
-    style=dict(margin='50px')
+    ]
 )

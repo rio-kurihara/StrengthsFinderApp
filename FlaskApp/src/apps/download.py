@@ -91,8 +91,7 @@ layout = html.Div(
      layout_samples,
      Download(id="mst_download"),
      Download(id="strengths_download")
-     ],
-    style=dict(margin="50px")
+     ]
 )
 
 

@@ -505,5 +505,4 @@ layout = html.Div(
         dcc.Markdown(id='target_user'),
         unique_strengths_cards_row,
     ],
-    style=dict(margin="50px")
 )
