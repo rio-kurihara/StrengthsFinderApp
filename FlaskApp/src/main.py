@@ -8,6 +8,8 @@ from apps import (download, matching, overview, person, qa, team, top, upload,
 from navigation_menu import nav_menu
 
 
+server = app.server
+
 app.layout = html.Div(
     [
         nav_menu,
