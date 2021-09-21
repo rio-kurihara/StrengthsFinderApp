@@ -1,3 +1,4 @@
+from google.cloud import storage
 import copy
 import pickle
 
@@ -5,6 +6,20 @@ import pandas as pd
 import plotly.graph_objs as go
 import yaml
 from dash import dcc, html
+
+# settings
+with open('settings.yaml') as f:
+    config = yaml.load(f, Loader=yaml.SafeLoader)
+top5_path = config['base_dir'] + config['top5_path']
+all34_path = config['base_dir'] + config['all34_path']
+colors_strengths_path = config['base_dir'] + config['colors_strengths_path']
+bucket_name = config['bucket_name']
+
+
+# load data
+df_top5 = pd.read_csv(top5_path, index_col='index')
+df_all34 = pd.read_csv(all34_path, index_col='index')
+dict_colors_strengths = pd.read_pickle(colors_strengths_path)
 
 
 def create_graph_strengths_rank_sum(rank_sum_each_departments, dict_colors_strengths, department):
@@ -96,16 +111,6 @@ def create_graph_registered_user_cnt(df_top5, df_all34):
 
     return data
 
-
-# load setting file
-with open('settings.yaml') as f:
-    config = yaml.load(f, Loader=yaml.SafeLoader)
-
-# load data
-df_top5 = pd.read_csv(config['data_path']['top5'], index_col='index')
-df_all34 = pd.read_csv(config['data_path']['all34'], index_col='index')
-with open(config['data_path']['dict_colors_strengths'], mode='rb') as f:
-    dict_colors_strengths = pickle.load(f)
 
 # 集計対象の部署名を設定
 departments = config['departments']

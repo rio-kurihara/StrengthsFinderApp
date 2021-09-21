@@ -44,8 +44,7 @@ def create_correlation_table(df_corr_all34, target_user):
 
     values_tmp = df_sorted[[target_user]].values.flatten()
     # 四捨五入
-    values = [Decimal(str(x)).quantize(
-        Decimal('0.01'), rounding=ROUND_HALF_UP) for x in values_tmp]
+    values = [Decimal(str(x)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP) for x in values_tmp]
 
     trace = go.Table(header=dict(values=[[''], target_user], fill=dict(color=heder_color), font=dict(color='white')),
                      cells=dict(values=[list_users, values], fill=dict(color=cells_color)))
@@ -55,13 +54,13 @@ def create_correlation_table(df_corr_all34, target_user):
     return data
 
 
-# load setting file
+# settings
 with open('settings.yaml') as f:
     config = yaml.load(f, Loader=yaml.SafeLoader)
+all34_corr_path = config['base_dir'] + config['all34_corr_path']
 
 # load data
-df_corr_all34 = pd.read_csv(
-    config['data_path']['all34_corr'], index_col='index')
+df_corr_all34 = pd.read_csv(all34_corr_path, index_col='index')
 
 unique_users = np.unique(df_corr_all34.index)
 
