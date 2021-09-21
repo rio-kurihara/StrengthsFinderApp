@@ -106,4 +106,7 @@ venv.bak/
 # data
 data/
 sample_data/
+
+# secrets
 key/
+settings.yaml
