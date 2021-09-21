@@ -18,28 +18,34 @@ from app import app
 # データ読み込み
 # ------------------------------------------------------------------------------
 
-# load setting file
+# settings
 with open('settings.yaml') as f:
     config = yaml.load(f, Loader=yaml.SafeLoader)
 
-# load data
-df_mst = pd.read_csv(config['data_path']['mst_category'])
-df_strength_org = pd.read_csv(config['data_path']['strengths_csv'])
-df_top5 = pd.read_csv(config['data_path']['top5'], index_col='index')
-df_all = pd.read_csv(config['data_path']
-                     ['all34_exsits_null'], index_col='index')
-df_all = df_all.fillna('nan')
+mst_category_path = config['base_dir'] + config['mst_category_path']
+mst_message_json_path = config['base_dir'] + config['mst_message_json_path']
+strengths_path = config['base_dir'] + config['strengths_path']
+top5_path = config['base_dir'] + config['top5_path']
+all34_path = config['base_dir'] + config['all34_path']
+all34_exsits_null_path = config['base_dir'] + config['all34_exsits_null_path']
 
-with open(config['data_path']['mst_message_json'], 'r', encoding='utf-8') as r:
-    dict_strengths_message = json.load(r)
+
+# load data
+df_mst = pd.read_csv(mst_category_path)
+df_strength_org = pd.read_csv(strengths_path)
+df_top5 = pd.read_csv(top5_path, index_col='index')
+df_all = pd.read_csv(all34_exsits_null_path, index_col='index')
+df_all = df_all.fillna('nan')
+dict_strengths_message = pd.read_json(mst_message_json_path)
+
 
 list_category = df_mst['category'].unique()
 dict_strengths_category = df_mst.set_index('strengths')['category'].to_dict()
 
-
 # ------------------------------------------------------------------------------
 # 機能1 グループの傾向把握: callbackの設定
 # ------------------------------------------------------------------------------
+
 
 def calc_score(df_top5, user_name: str):
     """ TODO

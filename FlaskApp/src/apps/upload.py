@@ -7,22 +7,33 @@ import pandas as pd
 import yaml
 from dash import dcc, html
 from dash.dependencies import Input, Output, State
+from google.cloud import storage
 
 from app import app
-from apps import pdf_loader
+from apps.pdf_loader import pdf_to_txt, convert_parsed_txt, check_parsed_txt
 
 
-def save_file(contents, save_path):
+# setting
+with open('settings.yaml') as f:
+    config = yaml.load(f, Loader=yaml.SafeLoader)
+tmp_pdf_save_dir = config['tmp_pdf_save_dir']
+bucket_name = config['bucket_name']
+strengths_path = config['base_dir'] + config['strengths_path']
+strengths_bkup_path = config['base_dir'] + config['strengths_bkup_path']
+demogra_path = config['base_dir'] + config['demogra_path']
+demogra_bkup_path = config['base_dir'] + config['demogra_bkup_path']
+
+client = storage.Client()
+bucket = client.get_bucket(bucket_name)
+
+
+def save_pdf_file(contents, save_path):
     bytes_base64 = contents.encode("utf8").split(b";base64,")[1]  # str->bytes
     decoded_data = base64.decodebytes(bytes_base64)
 
     with open(save_path, "wb") as fp:
         fp.write(decoded_data)
 
-
-# load setting file
-with open('settings.yaml') as f:
-    config = yaml.load(f, Loader=yaml.SafeLoader)
 
 # layout の設定
 header_contents = html.Div(
@@ -105,23 +116,27 @@ layout = html.Div(
               State('upload-pdf', 'filename')
               )
 def update_output(_, user_name, department, contents, filename):
-    # save file
-    save_dir = config['data_path']['upload_dir']
+    # save file (temporary)
     dt_now_jst_aware = datetime.datetime.now(
         datetime.timezone(datetime.timedelta(hours=9))
     )
     datetime_now = dt_now_jst_aware.strftime('%Y%m%d_%H%M%S_')
+    pdf_save_path = os.path.join(tmp_pdf_save_dir, datetime_now+filename)
+    save_pdf_file(contents, pdf_save_path)
 
-    save_path = os.path.join(save_dir, datetime_now+filename)
-    save_file(contents, save_path)
+    # Upload the pdf file to GCS bucket
+    upload_pdf_path = 'upload_data/pdf/'+datetime_now+filename
+    blob = bucket.blob(upload_pdf_path)
+    blob.upload_from_filename(pdf_save_path)
 
     # pdf2txt
-    txt = pdf_loader.pdf_to_txt(save_path)
-    dict_result = pdf_loader.txt_to_dict_format(txt)
+    txt = pdf_to_txt(pdf_save_path)
+    list_strengths = convert_parsed_txt(txt)
+    parse_status = check_parsed_txt(list_strengths)
 
-    if dict_result['status'] == True:
+    if parse_status:
         # format DataFrame
-        df_strengths_input = pd.DataFrame(dict_result['result'])
+        df_strengths_input = pd.DataFrame(list_strengths)
         df_strengths_input.index = df_strengths_input.index + 1  # 1始まりにするため
         df_strengths_input = df_strengths_input.reset_index()
         df_strengths_input.columns = ['rank', 'strengths']
@@ -144,20 +159,22 @@ def update_output(_, user_name, department, contents, filename):
 
         # csv ファイルをアップデートする
         # streangth
-        df_strengths_org = pd.read_csv(config['data_path']['strengths_csv'])
+        df_strengths_org = pd.read_csv(strengths_path)
         df_strengths_org[user_name] = df_strengths_input['strengths']
-        df_strengths_org.to_csv(config['data_path']['strengths_csv'], index=False)
+        df_strengths_org.to_csv(strengths_path, index=False)
+        df_strengths_org.to_csv(strengths_bkup_path, index=False)
 
         # streangth
-        df_demogra = pd.read_csv(config['data_path']['demogra_csv'])
+        df_demogra = pd.read_csv(demogra_path)
         sr_demogra_input = pd.Series([user_name, department], index=["name", "department"])
         df_demogra = df_demogra.append(sr_demogra_input, ignore_index=True)
-        df_demogra.to_csv(config['data_path']['demogra_csv'], index=False)
+        df_demogra.to_csv(demogra_path, index=False)
+        df_demogra.to_csv(demogra_bkup_path, index=False)
 
-        # アップロードされたファイルの削除
-        os.remove(save_path)
+        # アップロードされたPDFファイルの削除
+        os.remove(pdf_save_path)
 
     else:
-        output = dict_result['error_message']
+        output = 'PDFの読み込みに失敗しました。お手数ですが手動入力の程お願い致します。'
 
     return output

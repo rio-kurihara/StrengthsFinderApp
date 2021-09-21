@@ -10,10 +10,11 @@ from dash_extensions.snippets import send_data_frame
 from app import app
 
 
-# load setting file
+# settings
 with open('settings.yaml') as f:
     config = yaml.load(f, Loader=yaml.SafeLoader)
-
+strengths_path = config['base_dir'] + config['strengths_path']
+demogra_path = config['base_dir'] + config['demogra_path']
 
 # サンプルデータの作成（データフレーム）
 df_sample_mst = pd.DataFrame(
@@ -99,7 +100,7 @@ layout = html.Div(
               [Input('mst_download_btn', 'n_clicks')])
 def get_master(n_clicks):
     if not n_clicks == None:
-        df = pd.read_csv(config['data_path']['demogra_csv'])
+        df = pd.read_csv(demogra_path)
         return send_data_frame(df.to_csv, filename="member_demogra.csv")
     else:
         return None
@@ -109,7 +110,7 @@ def get_master(n_clicks):
               [Input('strengths_download_btn', 'n_clicks')])
 def get_strengths(n_clicks):
     if not n_clicks == None:
-        df = pd.read_csv(config['data_path']['strengths_csv'])
+        df = pd.read_csv(strengths_path)
         return send_data_frame(df.to_csv, filename="member_strengths.csv")
     else:
         return None

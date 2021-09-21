@@ -9,18 +9,21 @@ from dash.dependencies import Input, Output
 
 from app import app
 
-# load setting file
+
+# settings
 with open('settings.yaml') as f:
     config = yaml.load(f, Loader=yaml.SafeLoader)
 
-# load data
-df_all = pd.read_csv(config['data_path']['all34_exsits_null'], index_col='index')
-df_all = df_all.fillna('nan')
+all34_exsits_null_path = config['base_dir'] + config['all34_exsits_null_path']
+colors_strengths_path = config['base_dir'] + config['colors_strengths_path']
+strengths_desc_path = config['base_dir'] + config['strengths_desc_path']
 
-with open(config['data_path']['dict_colors_strengths'], mode='rb') as f:
-    dict_colors_strengths = pickle.load(f)
-with open(config['data_path']['dict_strengths_desc'], mode='rb') as f:
-    dict_strengths_desc = pickle.load(f)
+
+# load data
+df_all = pd.read_csv(all34_exsits_null_path, index_col='index')
+df_all = df_all.fillna('nan')
+dict_colors_strengths = pd.read_pickle(colors_strengths_path)
+dict_strengths_desc = pd.read_pickle(strengths_desc_path)
 
 
 header_contents = html.Div(
