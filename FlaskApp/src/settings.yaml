@@ -1,22 +1,28 @@
-data_path:
-  strengths_csv: "data/member_strengths.csv"
-  demogra_csv: "data/member_demogra.csv"
-  top5: "data/preprocessed/top5.csv"
-  all34: "data/preprocessed/all34.csv"
-  all34_exsits_null: "data/preprocessed/all34_exists_null.csv"
+# GCS
+bucket_name: <bucket_name>
+base_dir: gs://bucket_name/upload_data/
 
-  all34_corr: "data/preprocessed/df_corr_all34.csv"
-  mst_category: "data/mst/mst_category.csv"
-  mst_message_json: "data/mst/strengths_message.json"
-  dict_colors_strengths: "data/mst/dict_colors_strengths.pkl"
-  dict_strengths_desc: "data/mst/dict_strengths_desc.pkl"
+# base_dir 以下のパス
+strengths_path: original/strengths.csv
+strengths_bkup_path: original/strengths_bkup.csv
+demogra_path: original/demogra.csv
+demogra_bkup_path: original/demogra_bkup.csv
 
-  # GS
-  res_cos_name : "data/preprocessed/GAE_cos.csv"
+top5_path: preprocessed/top5.csv
+all34_path: preprocessed/all34.csv
+all34_exsits_null_path: preprocessed/all34_exists_null.csv
+all34_corr_path: preprocessed/df_corr_all34.csv
+res_cos_name_path : preprocessed/GAE_cos.csv
 
-  upload_dir: "data/tmp_upload/"
+mst_category_path: mst/mst_category.csv
+mst_message_json_path: mst/strengths_message.json
+colors_strengths_path: mst/dict_colors_strengths.pkl
+strengths_desc_path: mst/dict_strengths_desc.pkl
+
+tmp_pdf_save_dir: data/tmp_upload/
 
 departments: ["AN", "BZ", "CO", "DE", "DS", "HR", "MK", "MP", "retiree"]
+
 contact: "********@***.co.jp"
 
 port: 8080
