@@ -1,8 +1,13 @@
-# GCS
-bucket_name: <bucket_name>
-base_dir: gs://bucket_name/upload_data/
+# Change your bucket name
+bucket_name: <BUCKET_NAME>
+base_dir: gs://<BUCKET_NAME>/
 
-# base_dir 以下のパス
+# Change your team name
+departments: ["AN", "BZ", "CO", "DE", "DS", "HR", "MK", "MP", "retiree"]
+
+# Change contact
+contact: "********@***.co.jp"
+
 strengths_path: original/strengths.csv
 strengths_bkup_path: original/strengths_bkup.csv
 demogra_path: original/demogra.csv
@@ -20,9 +25,5 @@ colors_strengths_path: mst/dict_colors_strengths.pkl
 strengths_desc_path: mst/dict_strengths_desc.pkl
 
 tmp_pdf_save_dir: data/tmp_upload/
-
-departments: ["AN", "BZ", "CO", "DE", "DS", "HR", "MK", "MP", "retiree"]
-
-contact: "********@***.co.jp"
 
 port: 8080

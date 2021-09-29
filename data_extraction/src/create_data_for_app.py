@@ -4,7 +4,7 @@ from logging import getLogger
 
 import pandas as pd
 import yaml
-from data_extraction.GNN_and_GS import GAE
+from GNN_and_GS import GAE
 
 logger = getLogger(__name__)
 
@@ -66,12 +66,13 @@ def main():
     base_dir = config['base_dir']
     strengths_path = base_dir + config['strengths_path']
     demogra_path = base_dir + config['demogra_path']
-    all34_exsits_null_path = base_dir + config['all34_exsits_null']
+    all34_exsits_null_path = base_dir + config['all34_exsits_null_path']
     top5_path = base_dir + config['top5_path']
     all34_path = base_dir + config['all34_path']
     all34_corr_path = base_dir + config['all34_corr_path']
 
     # load data
+    print(strengths_path)
     df_member_org = pd.read_csv(strengths_path, index_col='rank').T
     df_member_demogura = pd.read_csv(demogra_path)
 
@@ -92,7 +93,8 @@ def main():
 
     # Scoreの追加
     dict_rank_to_score = {1: 5, 2: 4, 3: 3, 4: 2, 5: 1}
-    df_top5['score'] = df_top5[['rank']].applymap(dict_rank_to_score.get)
+    df_top5_copy = df_top5.copy() # pandas の SettingWithCopyWarning 対策
+    df_top5_copy.loc[:, 'score'] = df_top5[['rank']].applymap(dict_rank_to_score.get)
 
     # 相関行列
     df_corr_all34 = calc_corr(df_all34[['strengths', 'rank']])
@@ -100,8 +102,8 @@ def main():
 
     # saving
     df_vertical = df_vertical.fillna('nan')
-    df_vertical.reset_index().to_csv(all34_exsits_null, index=False)
-    df_top5.reset_index().to_csv(top5_path, index=False)
+    df_vertical.reset_index().to_csv(all34_exsits_null_path, index=False)
+    df_top5_copy.reset_index().to_csv(top5_path, index=False)
     df_all34.reset_index().to_csv(all34_path, index=False)
     df_corr_all34.to_csv(all34_corr_path)
 

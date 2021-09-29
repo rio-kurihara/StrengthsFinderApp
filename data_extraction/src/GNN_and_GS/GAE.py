@@ -267,7 +267,7 @@ def main(config_path):
     strengths_path = base_dir + conf['strengths_path']
 
     # load data
-    df = pd.read_csv(base_dir)
+    df = pd.read_csv(strengths_path)
 
     num_dict = make_dict(df)
     fm = make_feature_matrix(df, num_dict, **conf.feature_matrix)
@@ -358,7 +358,7 @@ def main(config_path):
     if conf.save_res:
         res_vec_save_path = base_dir + conf['res_vec_path']
         df_res = pd.DataFrame(res)
-        df_res.to_csv(save_res_vec_path)
+        df_res.to_csv(res_vec_save_path)
 
     if conf.save_res:
         res_cos_save_path = base_dir + conf['res_cos_path']

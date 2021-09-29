@@ -14,9 +14,10 @@ from app import app
 with open('settings.yaml') as f:
     config = yaml.load(f, Loader=yaml.SafeLoader)
 
-all34_exsits_null_path = config['base_dir'] + config['all34_exsits_null_path']
-colors_strengths_path = config['base_dir'] + config['colors_strengths_path']
-strengths_desc_path = config['base_dir'] + config['strengths_desc_path']
+base_dir = config['base_dir']
+all34_exsits_null_path = base_dir + config['all34_exsits_null_path']
+colors_strengths_path = base_dir + config['colors_strengths_path']
+strengths_desc_path = base_dir + config['strengths_desc_path']
 
 
 # load data
