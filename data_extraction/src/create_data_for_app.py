@@ -4,7 +4,7 @@ from logging import getLogger
 
 import pandas as pd
 import yaml
-from data_extraction.GNN_and_GS import GAE
+from GNN_and_GS import GAE
 
 logger = getLogger(__name__)
 
@@ -58,14 +58,23 @@ def calc_corr(df):
 
 def main():
     print('*** start preprocess ***')
+
+    # settings
     with open('settings.yaml') as f:
         config = yaml.load(f, Loader=yaml.SafeLoader)
 
+    base_dir = config['base_dir']
+    strengths_path = base_dir + config['strengths_path']
+    demogra_path = base_dir + config['demogra_path']
+    all34_exsits_null_path = base_dir + config['all34_exsits_null_path']
+    top5_path = base_dir + config['top5_path']
+    all34_path = base_dir + config['all34_path']
+    all34_corr_path = base_dir + config['all34_corr_path']
+
     # load data
-    # df_mst = pd.read_csv('{}/mst/mst_category.csv'.format(dir_data))
-    df_member_org = pd.read_csv(
-        config['data_path']['strengths_csv'], index_col='rank').T
-    df_member_demogura = pd.read_csv(config['data_path']['demogra_csv'])
+    print(strengths_path)
+    df_member_org = pd.read_csv(strengths_path, index_col='rank').T
+    df_member_demogura = pd.read_csv(demogra_path)
 
     # データの整形
     # 横持ちに変換
@@ -84,30 +93,23 @@ def main():
 
     # Scoreの追加
     dict_rank_to_score = {1: 5, 2: 4, 3: 3, 4: 2, 5: 1}
-    df_top5['score'] = df_top5[['rank']].applymap(dict_rank_to_score.get)
+    df_top5_copy = df_top5.copy() # pandas の SettingWithCopyWarning 対策
+    df_top5_copy.loc[:, 'score'] = df_top5[['rank']].applymap(dict_rank_to_score.get)
 
     # 相関行列
-    # df_corr_top5 = calc_corr(df_top5[['strengths', 'rank']])
     df_corr_all34 = calc_corr(df_all34[['strengths', 'rank']])
     df_corr_all34.index.name = 'index'
 
-    # create directory
-    tmp_dir = os.path.dirname(config['data_path']['all34_exsits_null'])
-    if not os.path.exists(tmp_dir):
-        os.mkdir(tmp_dir)
-    del tmp_dir
-    
     # saving
     df_vertical = df_vertical.fillna('nan')
-    df_vertical.reset_index().to_csv(
-        config['data_path']['all34_exsits_null'], index=False)
-    df_top5.reset_index().to_csv(config['data_path']['top5'], index=False)
-    df_all34.reset_index().to_csv(config['data_path']['all34'], index=False)
-    # df_corr_top5.to_csv('{}/for_plot/df_corr_top5.csv'.format(dir_data))
-    df_corr_all34.to_csv(config['data_path']['all34_corr'])
+    df_vertical.reset_index().to_csv(all34_exsits_null_path, index=False)
+    df_top5_copy.reset_index().to_csv(top5_path, index=False)
+    df_all34.reset_index().to_csv(all34_path, index=False)
+    df_corr_all34.to_csv(all34_corr_path)
 
     # run GAE
-    GAE.main(config['data_path']['GS_config'])
+    GS_config_path = config['GS_config_path']
+    GAE.main(GS_config_path)
 
     print('saving done')
 

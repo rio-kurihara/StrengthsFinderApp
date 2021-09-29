@@ -22,12 +22,14 @@ from app import app
 with open('settings.yaml') as f:
     config = yaml.load(f, Loader=yaml.SafeLoader)
 
-mst_category_path = config['base_dir'] + config['mst_category_path']
-mst_message_json_path = config['base_dir'] + config['mst_message_json_path']
-strengths_path = config['base_dir'] + config['strengths_path']
-top5_path = config['base_dir'] + config['top5_path']
-all34_path = config['base_dir'] + config['all34_path']
-all34_exsits_null_path = config['base_dir'] + config['all34_exsits_null_path']
+base_dir = config['base_dir']
+
+mst_category_path = base_dir + config['mst_category_path']
+mst_message_json_path = base_dir + config['mst_message_json_path']
+strengths_path = base_dir + config['strengths_path']
+top5_path = base_dir + config['top5_path']
+all34_path = base_dir + config['all34_path']
+all34_exsits_null_path = base_dir + config['all34_exsits_null_path']
 
 
 # load data

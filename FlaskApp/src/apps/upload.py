@@ -16,12 +16,15 @@ from apps.pdf_loader import pdf_to_txt, convert_parsed_txt, check_parsed_txt
 # setting
 with open('settings.yaml') as f:
     config = yaml.load(f, Loader=yaml.SafeLoader)
+
 tmp_pdf_save_dir = config['tmp_pdf_save_dir']
 bucket_name = config['bucket_name']
-strengths_path = config['base_dir'] + config['strengths_path']
-strengths_bkup_path = config['base_dir'] + config['strengths_bkup_path']
-demogra_path = config['base_dir'] + config['demogra_path']
-demogra_bkup_path = config['base_dir'] + config['demogra_bkup_path']
+base_dir = config['base_dir']
+
+strengths_path = base_dir + config['strengths_path']
+strengths_bkup_path = base_dir + config['strengths_bkup_path']
+demogra_path = base_dir + config['demogra_path']
+demogra_bkup_path = base_dir + config['demogra_bkup_path']
 
 client = storage.Client()
 bucket = client.get_bucket(bucket_name)
@@ -125,7 +128,8 @@ def update_output(_, user_name, department, contents, filename):
     save_pdf_file(contents, pdf_save_path)
 
     # Upload the pdf file to GCS bucket
-    upload_pdf_path = 'upload_data/pdf/'+datetime_now+filename
+    upload_pdf_fname = datetime_now + filename
+    upload_pdf_path = base_dir + 'pdf/' + upload_pdf_fname
     blob = bucket.blob(upload_pdf_path)
     blob.upload_from_filename(pdf_save_path)
 

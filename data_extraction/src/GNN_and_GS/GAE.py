@@ -260,11 +260,15 @@ class Encoder(torch.nn.Module):
 
 
 def main(config_path):
-    # args = parser.parse_args().__dict__
+    # settings
     conf = load_config(config_path)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    base_dir = conf['base_dir']
+    strengths_path = base_dir + conf['strengths_path']
 
-    df = pd.read_csv(conf.data_path)
+    # load data
+    df = pd.read_csv(strengths_path)
+
     num_dict = make_dict(df)
     fm = make_feature_matrix(df, num_dict, **conf.feature_matrix)
 
@@ -350,13 +354,16 @@ def main(config_path):
         return res.cpu().numpy()
     # 二次元圧縮と可視化
     res = plot_points()
-    if conf.save_res:
-        os.makedirs(os.path.dirname(conf.save_res_vec_name), exist_ok=True)
-        np.savetxt(conf.save_res_vec_name, res, delimiter=',')
 
     if conf.save_res:
-        os.makedirs(os.path.dirname(conf.save_res_cos_name), exist_ok=True)
-        np.savetxt(conf.save_res_cos_name, cos_sim_matrix(res), delimiter=',')
+        res_vec_save_path = base_dir + conf['res_vec_path']
+        df_res = pd.DataFrame(res)
+        df_res.to_csv(res_vec_save_path)
+
+    if conf.save_res:
+        res_cos_save_path = base_dir + conf['res_cos_path']
+        df_res = pd.DataFrame(cos_sim_matrix(res))
+        df_res.to_csv(res_cos_save_path)
 
 
 # if __name__ == '__main__':

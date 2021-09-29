@@ -110,3 +110,4 @@ sample_data/
 # secrets
 key/
 settings.yaml
+config.yaml
