@@ -1,0 +1,12 @@
+# Change your bucket name
+base_dir: gs://<BUCKET_NAME>/
+
+strengths_path: original/strengths.csv
+demogra_path: original/demogra.csv
+
+top5_path: preprocessed/top5.csv
+all34_path: preprocessed/all34.csv
+all34_exsits_null_path: preprocessed/all34_exists_null.csv
+all34_corr_path: preprocessed/df_corr_all34.csv
+
+GS_config_path: GNN_and_GS/config.yaml

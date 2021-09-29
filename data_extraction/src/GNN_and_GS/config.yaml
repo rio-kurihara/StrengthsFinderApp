@@ -1,0 +1,38 @@
+# Change your bucket name
+base_dir: gs://<BUCKET_NAME>/
+
+strengths_path: original/strengths.csv
+res_vec_path: preprocessed/GAE_vec.csv
+res_cos_path: preprocessed/GAE_cos.csv
+
+user_num: &user_num 200 # 適当に大きい数字にしておくと全社員になる
+strength_num: &strength_num 5
+name_list: &name_list null # Noneはyamlではnull
+# num_iter: 20000
+num_iter: 6000
+save_pos: False
+save_res: True
+
+gae:
+  dim: 16
+  model: "GAE"
+
+feature_matrix:
+  user_num: *user_num
+  strength_num: *strength_num
+  name_list: *name_list
+
+graph:
+  user_num: *user_num
+  strength_num: *strength_num
+  name_list: *name_list
+
+node2vec:
+  embedding_dim: 16
+  walk_length: 15
+  context_size: 5
+  walks_per_node: 40
+  num_negative_samples: 1
+  q: 6.0
+  p: 0.5
+  sparse: True
