@@ -93,8 +93,10 @@ def main():
 
     # Scoreの追加
     dict_rank_to_score = {1: 5, 2: 4, 3: 3, 4: 2, 5: 1}
-    df_top5_copy = df_top5.copy() # pandas の SettingWithCopyWarning 対策
-    df_top5_copy.loc[:, 'score'] = df_top5[['rank']].applymap(dict_rank_to_score.get)
+    df_top5['score'] = df_top5[['rank']].applymap(dict_rank_to_score.get)
+    # TODO: pandas の SettingWithCopyWarning
+    # df_top5_copy = df_top5.copy()
+    # df_top5_copy.loc[:, 'score'] = df_top5[['rank']].applymap(dict_rank_to_score.get)
 
     # 相関行列
     df_corr_all34 = calc_corr(df_all34[['strengths', 'rank']])
@@ -103,7 +105,8 @@ def main():
     # saving
     df_vertical = df_vertical.fillna('nan')
     df_vertical.reset_index().to_csv(all34_exsits_null_path, index=False)
-    df_top5_copy.reset_index().to_csv(top5_path, index=False)
+    df_top5.reset_index().to_csv(top5_path, index=False) # TODO
+    # df_top5_copy.reset_index().to_csv(top5_path, index=False)
     df_all34.reset_index().to_csv(all34_path, index=False)
     df_corr_all34.to_csv(all34_corr_path)
 

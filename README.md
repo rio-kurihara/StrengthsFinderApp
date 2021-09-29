@@ -38,7 +38,9 @@ export IMAGE_URI=gcr.io/$PROJECT_ID/$IMAGE_REPO_NAME:$IMAGE_TAG
 
 ```bash
 gsutil mb gs://$BUCKET_NAME
-gsutil cp data_extraction/sample_data/* gs://$BUCKET_NAME/original/*
+# サンプルデータを GCS にコピーする
+gsutil cp data_extraction/sample_data/original/* gs://$BUCKET_NAME/original/*
+gsutil cp data_extraction/sample_data/mst/* gs://$BUCKET_NAME/mst/*
 ```
 
 作成したら、以下の config ファイル内の <BUCKET_NAME> を変更する。  
@@ -52,6 +54,8 @@ gsutil cp data_extraction/sample_data/* gs://$BUCKET_NAME/original/*
 ```bash
 gcloud auth login
 gcloud app create --region=$REGION
+
+cd FlaskApp/src
 gcloud app deploy
 ```
 
