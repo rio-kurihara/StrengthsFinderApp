@@ -43,16 +43,19 @@ def make_dict(df: DataFrame) -> dict:
     strength_set = set(df[syain.keys()][:5].values.flatten())
     strength = {k: num for num, k in enumerate(strength_set)}
     strength_swap = {v: k for k, v in strength.items()}
-    return dict(
-        syain=dict(
-            str_num=syain,      # 社員名: id
-            num_str=syain_swap  # id: 社員名
-        ),
-        strength=dict(
-            str_num=strength,   # ストレングス: id
-            num_str=strength_swap  # id: ストレングス
-        )
-    )
+
+    result = dict(
+            syain=dict(
+                str_num=syain,      # 社員名: id
+                num_str=syain_swap  # id: 社員名
+                ),
+            strength=dict(
+                str_num=strength,   # ストレングス: id
+                num_str=strength_swap  # id: ストレングス
+                )
+            )
+
+    return result
 
 
 def prefer_order(list_A: list, list_B: list, num_dict: dict, res_mat: np.array) -> tuple:
@@ -108,8 +111,6 @@ def search_stable_matching(set_A, set_B):
                         female_keep_set[tmp_keep_female] = ""
                     else:
                         female_keep_set[female] = male
-                    print(female_keep_set)
-                    print(male_keep_set)
                 else:
                     set_A[male].pop(0)  # 振られたら告白候補から取り除く
 
@@ -119,7 +120,6 @@ def search_stable_matching(set_A, set_B):
                 is_all_keeped = False
         if is_all_keeped:
             break
-
     return female_keep_set
 
 
@@ -182,7 +182,7 @@ layout = html.Div(
         html.B(id='matching_check',
                style=dict(color='red')
                ),
-        dcc.Graph(id='matching',
+        dcc.Graph(id='matching_result',
                   responsive=True,
                   )
     ]
@@ -201,7 +201,7 @@ def check_matching_input(list_userA, list_userB):
         return True
 
 
-@app.callback(Output('matching', 'figure'),
+@app.callback(Output('matching_result', 'figure'),
               [Input('matching_check', 'children'),
                Input('group_usersA', 'value'),
                Input('group_usersB', 'value')])
@@ -212,15 +212,15 @@ def update_matching(check_result, list_userA, list_userB):
     except:
         pass
 
-    if not check_result == True:
-        return {'data': [], 'layout': []}
+    if check_result == False:
+        return {'data': None, 'layout': None}
     else:
         num_dict = make_dict(df_strength)
-        res_mat = np.loadtxt(config['data_path']['res_cos_name'], delimiter=',')
+        res_cos_path = config['base_dir'] + config['res_cos_name_path']
+        res_mat = np.array(pd.read_csv(res_cos_path))
         set_A, set_B = prefer_order(
             list_userA, list_userB, num_dict, res_mat)
         result = search_stable_matching(set_A, set_B)
-
         df_result = pd.DataFrame.from_dict(
             result, orient='index').reset_index()
         df_result.columns = ['メンター', 'メンティー']
