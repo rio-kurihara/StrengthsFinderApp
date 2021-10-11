@@ -53,6 +53,8 @@ def calc_corr(df):
     df_pivot = df_pivot.fillna(0)
     df_corr = df_pivot.T.corr()
     df_corr = df_corr.sort_index()
+    df_corr = df_corr.round(2)
+
     return df_corr
 
 
@@ -105,7 +107,7 @@ def main():
     # saving
     df_vertical = df_vertical.fillna('nan')
     df_vertical.reset_index().to_csv(all34_exsits_null_path, index=False)
-    df_top5.reset_index().to_csv(top5_path, index=False) # TODO
+    df_top5.reset_index().to_csv(top5_path, index=False)  # TODO
     # df_top5_copy.reset_index().to_csv(top5_path, index=False)
     df_all34.reset_index().to_csv(all34_path, index=False)
     df_corr_all34.to_csv(all34_corr_path)

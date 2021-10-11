@@ -10,21 +10,26 @@ from navigation_menu import nav_menu
 
 server = app.server
 
+
 app.layout = html.Div(
     [
         nav_menu,
-
         dcc.Location(id='url', refresh=False),
         html.Div(id='page-content')
     ],
     style=dict(margin="50px")
 )
 
+
+welcome_message = html.H5(
+    'ストレングスファインダーWebAppへようこそ',
+    style=dict(padding="10px", borderLeft="5px #b31b1b solid")
+)
+
 header_contents = html.Div(
     [
-        html.H5('ストレングスファインダーWebAppへようこそ',
-                style=dict(padding="10px", borderLeft="5px #b31b1b solid")),
-        html.P('')
+        welcome_message,
+        html.Br()
     ]
 )
 
@@ -58,7 +63,6 @@ def display_page(pathname):
         return download.layout
     elif pathname == '/QA':
         return qa.layout
-
     else:
         return '404'
 

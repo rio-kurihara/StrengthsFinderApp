@@ -13,19 +13,18 @@ from app import app
 
 
 def _get_colorpalette(colorpalette, n_colors):
-    palette = sns.color_palette(
-        colorpalette, n_colors)
+    palette = sns.color_palette(colorpalette, n_colors)
     rgb = ['rgb({},{},{})'.format(*[x*256 for x in rgb])
            for rgb in palette]
     return rgb
 
 
 def create_correlation_table(df_corr_all34, target_user):
-    """１人のユーザーに対する全ユーザーの相関係数を表示するためのグラフオブジェクトを作成
+    """１人のユーザーに対する全ユーザーとの相関係数を表示するためのグラフオブジェクトを作成
 
     Args:
         df_corr_all34 (pd.DataFrame): 全ユーザーの相関行列
-        target_user (str): ユーザー名
+        target_user (str): 対象のユーザー名
 
     Returns:
         list: グラフオブジェクトのリスト
@@ -33,37 +32,49 @@ def create_correlation_table(df_corr_all34, target_user):
 
     data = []
 
-    df_sorted = df_corr_all34[[target_user]].sort_values(
-        by=target_user, ascending=False)
-    list_users = df_sorted.index
+    # 描画するデータの取得
+    # 対象ユーザーのデータを抽出
+    df_target = df_corr_all34[[target_user]]
+    # 相関係数が高い順にソート
+    df_sorted = df_target.sort_values(by=target_user, ascending=False)
+    # 相関係数の配列を取得
+    corr_scores = df_sorted[[target_user]].values.flatten()
 
+    # グラフオブジェクトの作成
+    list_users = df_sorted.index
     n_legends = len(list_users)
     colors = _get_colorpalette('RdYlBu', n_legends)
     heder_color = ['white', 'black']
     cells_color = ['whitesmoke', colors]
 
-    values_tmp = df_sorted[[target_user]].values.flatten()
-    # 四捨五入
-    values = [Decimal(str(x)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP) for x in values_tmp]
-
-    trace = go.Table(header=dict(values=[[''], target_user], fill=dict(color=heder_color), font=dict(color='white')),
-                     cells=dict(values=[list_users, values], fill=dict(color=cells_color)))
+    trace = go.Table(
+        header=dict(
+            values=[[''], target_user],
+            fill=dict(color=heder_color),
+            font=dict(color='white')
+        ),
+        cells=dict(
+            values=[list_users, corr_scores],
+            fill=dict(color=cells_color)
+        )
+    )
 
     data.append(trace)
 
     return data
 
 
-# settings
+# settings.yaml の読み込み
 with open('settings.yaml') as f:
     config = yaml.load(f, Loader=yaml.SafeLoader)
+# パスを設定
 all34_corr_path = config['base_dir'] + config['all34_corr_path']
 
-# load data
+# GCS のバケットからファイルを読み込む
 df_corr_all34 = pd.read_csv(all34_corr_path, index_col='index')
 
-unique_users = np.unique(df_corr_all34.index)
 
+unique_users = np.unique(df_corr_all34.index)
 
 header_contents = html.Div(
     [
@@ -100,9 +111,11 @@ def update_graph(target_user):
         width=1000,
         barmode='stack',
         showlegend=False,
-        xaxis=dict(title="Strengths",
-                   side='top',
-                   tickangle=90),
+        xaxis=dict(
+            title="Strengths",
+            side='top',
+            tickangle=90
+        ),
         yaxis=dict(
             autorange='reversed',
             showgrid=False,
