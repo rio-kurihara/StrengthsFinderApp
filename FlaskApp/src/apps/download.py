@@ -1,3 +1,5 @@
+from typing import Union
+
 import dash_bootstrap_components as dbc
 import pandas as pd
 import plotly.graph_objs as go
@@ -67,7 +69,6 @@ layout_samples = dbc.Row(
     className="mb-4",
 )
 
-
 header_contents = html.Div(
     [
         html.H5('ストレングスファインダーの結果一覧をダウンロード',
@@ -98,19 +99,23 @@ layout = html.Div(
 
 @app.callback(Output("mst_download", "data"),
               [Input('mst_download_btn', 'n_clicks')])
-def get_master(n_clicks):
-    if not n_clicks == None:
+def download_demogra_csv(n_clicks: Union[int, None]) -> Union[dict, None]:
+    """ダウンロードボタンがクリックされたらデモグラファイルをダウンロード"""
+    if type(n_clicks) == int:
         df = pd.read_csv(demogra_path)
-        return send_data_frame(df.to_csv, filename="member_demogra.csv")
+        dataframe_content = send_data_frame(df.to_csv, filename="member_demogra.csv")
+        return dataframe_content
     else:
         return None
 
 
 @app.callback(Output("strengths_download", "data"),
               [Input('strengths_download_btn', 'n_clicks')])
-def get_strengths(n_clicks):
-    if not n_clicks == None:
+def download_strengths_csv(n_clicks: Union[int, None]) -> Union[dict, None]:
+    """ダウンロードボタンがクリックされたら資質ファイルをダウンロード"""
+    if type(n_clicks) == int:
         df = pd.read_csv(strengths_path)
-        return send_data_frame(df.to_csv, filename="member_strengths.csv")
+        dataframe_content = send_data_frame(df.to_csv, filename="member_strengths.csv")
+        return dataframe_content
     else:
         return None

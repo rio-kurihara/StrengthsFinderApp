@@ -10,23 +10,23 @@ from dash.dependencies import Input, Output
 from app import app
 
 
-# settings
+# settings.yaml の読み込み
 with open('settings.yaml') as f:
     config = yaml.load(f, Loader=yaml.SafeLoader)
 
+# パスを設定
 base_dir = config['base_dir']
 all34_exsits_null_path = base_dir + config['all34_exsits_null_path']
 colors_strengths_path = base_dir + config['colors_strengths_path']
 strengths_desc_path = base_dir + config['strengths_desc_path']
 
-
-# load data
-df_all = pd.read_csv(all34_exsits_null_path, index_col='index')
+# GCS のバケットからファイルを読み込む
+df_all = pd.read_csv(all34_exsits_null_path, index_col='user_name')
 df_all = df_all.fillna('nan')
 dict_colors_strengths = pd.read_pickle(colors_strengths_path)
 dict_strengths_desc = pd.read_pickle(strengths_desc_path)
 
-
+# レイアウトに追加するコンポーネントの作成
 header_contents = html.Div(
     [
         html.H5('受診済みの方の資質ランキング表示',
@@ -52,7 +52,9 @@ layout = html.Div(
 )
 
 
-def create_strengths_rank_list(df, dict_colors_strengths, dict_strengths_desc, list_person):
+def create_strengths_rank_list(
+    df: pd.DataFrame, dict_colors_strengths: dict, dict_strengths_desc: dict, list_person: list
+) -> list:
     """ユーザーの資質一覧を表示するためのグラフオブジェクトを作成
 
     Args:

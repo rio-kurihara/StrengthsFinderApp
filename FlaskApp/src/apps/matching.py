@@ -130,7 +130,7 @@ strengths_path = config['base_dir'] + config['strengths_path']
 top5_path = config['base_dir'] + config['top5_path']
 
 # load data
-df_top5 = pd.read_csv(top5_path, index_col='index')
+df_top5 = pd.read_csv(top5_path, index_col='user_name')
 df_strength = pd.read_csv(strengths_path)
 
 
@@ -222,7 +222,7 @@ def update_matching(check_result, list_userA, list_userB):
             list_userA, list_userB, num_dict, res_mat)
         result = search_stable_matching(set_A, set_B)
         df_result = pd.DataFrame.from_dict(
-            result, orient='index').reset_index()
+            result, orient='user_name').reset_index()
         df_result.columns = ['メンター', 'メンティー']
         df_result = df_result[['メンティー', 'メンター']]
         df_result = df_result[df_result['メンティー'] != '']
