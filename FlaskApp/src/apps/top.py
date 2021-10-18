@@ -21,7 +21,7 @@ colors_strengths_path = base_dir + config['colors_strengths_path']
 strengths_desc_path = base_dir + config['strengths_desc_path']
 
 # GCS のバケットからファイルを読み込む
-df_all = pd.read_csv(all34_exsits_null_path, index_col='index')
+df_all = pd.read_csv(all34_exsits_null_path, index_col='user_name')
 df_all = df_all.fillna('nan')
 dict_colors_strengths = pd.read_pickle(colors_strengths_path)
 dict_strengths_desc = pd.read_pickle(strengths_desc_path)

@@ -22,8 +22,8 @@ departments = config['departments']
 departments.remove("retiree")
 
 # GCS のバケットからファイルを読み込む
-df_top5 = pd.read_csv(top5_path, index_col='index')
-df_all34 = pd.read_csv(all34_path, index_col='index')
+df_top5 = pd.read_csv(top5_path, index_col='user_name')
+df_all34 = pd.read_csv(all34_path, index_col='user_name')
 dict_colors_strengths = pd.read_pickle(colors_strengths_path)
 
 

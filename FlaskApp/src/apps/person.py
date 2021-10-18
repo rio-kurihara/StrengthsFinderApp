@@ -71,7 +71,7 @@ with open('settings.yaml') as f:
 all34_corr_path = config['base_dir'] + config['all34_corr_path']
 
 # GCS のバケットからファイルを読み込む
-df_corr_all34 = pd.read_csv(all34_corr_path, index_col='index')
+df_corr_all34 = pd.read_csv(all34_corr_path, index_col='user_name')
 
 
 unique_users = np.unique(df_corr_all34.index)

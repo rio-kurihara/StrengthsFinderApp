@@ -31,8 +31,8 @@ all34_exsits_null_path = base_dir + config['all34_exsits_null_path']
 # GCS のバケットからファイルを読み込む
 df_mst = pd.read_csv(mst_category_path)
 df_strength_org = pd.read_csv(strengths_path)
-df_top5 = pd.read_csv(top5_path, index_col='index')
-df_all = pd.read_csv(all34_exsits_null_path, index_col='index')
+df_top5 = pd.read_csv(top5_path, index_col='user_name')
+df_all = pd.read_csv(all34_exsits_null_path, index_col='user_name')
 df_all = df_all.fillna('nan')
 dict_strengths_message = pd.read_json(mst_message_json_path)
 
