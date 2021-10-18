@@ -45,15 +45,15 @@ def make_dict(df: DataFrame) -> dict:
     strength_swap = {v: k for k, v in strength.items()}
 
     result = dict(
-            syain=dict(
-                str_num=syain,      # 社員名: id
-                num_str=syain_swap  # id: 社員名
-                ),
-            strength=dict(
-                str_num=strength,   # ストレングス: id
-                num_str=strength_swap  # id: ストレングス
-                )
-            )
+        syain=dict(
+            str_num=syain,      # 社員名: id
+            num_str=syain_swap  # id: 社員名
+        ),
+        strength=dict(
+            str_num=strength,   # ストレングス: id
+            num_str=strength_swap  # id: ストレングス
+        )
+    )
 
     return result
 
@@ -222,7 +222,7 @@ def update_matching(check_result, list_userA, list_userB):
             list_userA, list_userB, num_dict, res_mat)
         result = search_stable_matching(set_A, set_B)
         df_result = pd.DataFrame.from_dict(
-            result, orient='user_name').reset_index()
+            result, orient='index').reset_index()
         df_result.columns = ['メンター', 'メンティー']
         df_result = df_result[['メンティー', 'メンター']]
         df_result = df_result[df_result['メンティー'] != '']
