@@ -1,5 +1,6 @@
 attrdict
-networkx==2.6.3 # scipy.sparse.coo_array が最新バージョンだと対応していないため
+pytest
 torch_geometric
 torch_sparse
 torch_scatter
+networkx==2.6.3 # scipy.sparse.coo_array が最新バージョンだと対応していないため
