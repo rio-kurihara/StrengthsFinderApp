@@ -5,8 +5,26 @@ from src.create_data_for_app import convert_vertical
 
 
 def convert_vertical():
+    # 横持ちのデータセットを読み込む
+    """ exsample
+    |rank|user_name_1|user_name_2|
+    |---|---|---|
+    |1|strengths_A|strengths_B|
+    |2|strengths_C|strengths_D|
+    |...|...|...|
+    """
     sample_data_path = '../tests/sample_data/original/strengths_sample.csv'
     df = pd.read_csv(sample_data_path, index_col='rank').T
+
+    # 縦持ちに変換する
+    """ exsample
+    |user_name|strengths|rank|
+    |---|---|---|
+    |user_name_1|strengths_A|1|
+    |user_name_2|strengths_B|1|
+    |user_name_1|strengths_C|2|
+    |...|...|...|
+    """
 
     actual = convert_vertical(df)
 
