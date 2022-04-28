@@ -7,7 +7,7 @@ from src.create_data_for_app import (
 )
 
 
-def convert_vertical():
+def test_convert_vertical():
     # 横持ちのデータセットを読み込む
     """ exsample
     |rank|user_name_1|user_name_2|
@@ -16,7 +16,7 @@ def convert_vertical():
     |2|strengths_C|strengths_D|
     |...|...|...|
     """
-    sample_data_path = '../tests/sample_data/original/strengths_sample.csv'
+    sample_data_path = 'tests/sample_data/original/strengths_sample.csv'
     df = pd.read_csv(sample_data_path, index_col='rank').T
 
     # 縦持ちに変換する
