@@ -7,20 +7,26 @@ from src.apps.top import create_strengths_rank_list
 
 
 def test_create_strengths_rank_list():
-    # sample data
-    df = pd.read_csv('../tests/sample_data/sample_all34.csv', index_col='index')
-    with open("../tests/sample_data/mst/dict_colors_strengths.pkl", mode='rb') as f:
+    # サンプルデータの読み込み
+    df = pd.read_csv('tests/sample_data/preprocessed/all34_sample.csv', index_col='user_name')
+    with open("tests/sample_data/mst/dict_colors_strengths.pkl", mode='rb') as f:
         dict_colors_strengths = pickle.load(f)
-    with open("../tests/sample_data/mst/dict_strengths_desc.pkl", mode='rb') as f:
+    with open("tests/sample_data/mst/dict_strengths_desc.pkl", mode='rb') as f:
         dict_strengths_desc = pickle.load(f)
-    list_person = ['04TC6RBN']
+    # ユーザーからの入力データ例
+    list_person = ['2S5OY2TI']
 
-    res = create_strengths_rank_list(df, dict_colors_strengths, dict_strengths_desc, list_person)
+    # グラフオブジェクトを作成
+    actual = create_strengths_rank_list(df, dict_colors_strengths, dict_strengths_desc, list_person)
 
+    # 期待される型など
     expected_data_type = list
     expected_data_len = 34
     expected_element_type = plotly.graph_objs._bar.Bar
 
-    assert isinstance(res, expected_data_type)
-    assert len(res) == expected_data_len
-    assert isinstance(res[0], expected_element_type)
+    # 結果が list かどうか確認
+    assert isinstance(actual, expected_data_type)
+    # 結果が全資質の34個分あるかどうか確認
+    assert len(actual) == expected_data_len
+    # 結果のリストの中身が plotly のグラフオブジェクトか確認
+    assert isinstance(actual[0], expected_element_type)

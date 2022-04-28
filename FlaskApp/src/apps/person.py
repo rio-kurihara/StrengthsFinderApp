@@ -65,7 +65,7 @@ def create_correlation_table(df_corr_all34, target_user):
 
 
 # settings.yaml の読み込み
-with open('settings.yaml') as f:
+with open('src/settings.yaml') as f:
     config = yaml.load(f, Loader=yaml.SafeLoader)
 # パスを設定
 all34_corr_path = config['base_dir'] + config['all34_corr_path']

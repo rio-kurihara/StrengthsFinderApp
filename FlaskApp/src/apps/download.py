@@ -13,7 +13,7 @@ from app import app
 
 
 # settings
-with open('settings.yaml') as f:
+with open('src/settings.yaml') as f:
     config = yaml.load(f, Loader=yaml.SafeLoader)
 strengths_path = config['base_dir'] + config['strengths_path']
 demogra_path = config['base_dir'] + config['demogra_path']
