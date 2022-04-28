@@ -76,9 +76,16 @@ def check_top5_null(df: pd.DataFrame) -> pd.DataFrame:
     df_top5 = df[df['rank'] <= 5]
 
     if any(df_top5['strengths'].isnull()):
-        logger.warning('top5_null_exists it is deleted')
-        list_drop = df_top5[df_top5['strengths'].isnull()].index
-        df = df.drop(list_drop)
+        # 除外するユーザー名をリストで取得
+        sr_null_user_names = df_top5[df_top5['strengths'].isnull()]['user_name']
+        list_null_user_unique = set(list(sr_null_user_names))
+        drop_index = df.index[df['user_name'].isin(list_null_user_unique)]
+        # 該当するユーザーの行を全て削除
+        df = df.drop(drop_index, axis=0)
+        # インデックスを振り直す
+        df = df.reset_index(drop=True)
+
+        logger.warning('Deleted user name {} because the TOP5 data contained NULL'.format(list_null_user_unique))
 
     return df
 
@@ -126,6 +133,9 @@ def main():
     # データの整形
     # 横持ちに変換
     df_vertical = convert_vertical(df_member_org)
+    # TOP5のデータがNULLでないかチェック
+    df_vertical = check_top5_null(df_vertical)
+
     # チーム名を追加
     df_vertical_add_demogura = pd.merge(
         df_vertical, df_member_demogura,
@@ -133,9 +143,6 @@ def main():
     )
     df_vertical_add_demogura = df_vertical_add_demogura.drop('name', axis=1)
     df_vertical_add_demogura = df_vertical_add_demogura.set_index('user_name')
-
-    # TOP5のデータがNULLでないかチェック
-    df_vertical_add_demogura = check_top5_null(df_vertical_add_demogura)
 
     # TOP5のデータとALL34のデータに分割(上位5つしか結果を出していない人はALL34から除外)
     df_top5, df_all34 = split_top5_and_all34(df_vertical_add_demogura)
