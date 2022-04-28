@@ -2,7 +2,9 @@ from unittest import expectedFailure
 import numpy as np
 import pandas as pd
 from pandas.testing import assert_frame_equal
-from src.create_data_for_app import convert_vertical, check_top5_null, split_top5_and_all34
+from src.create_data_for_app import (
+    convert_vertical, check_top5_null, split_top5_and_all34, calc_corr
+)
 
 
 def convert_vertical():
@@ -125,3 +127,26 @@ def test_split_top5_and_all34():
 
     assert_frame_equal(actual_top5, expected_top5)
     assert_frame_equal(actual_all, expected_all)
+
+
+def test_calc_corr():
+    df_input = pd.DataFrame(
+        data={
+            'user_name': ['2S5OY2TI', '2S5OY2TI', '2S5OY2TI', '2S5OY2TI', '2S5OY2TI', '2S5OY2TI', '2S5OY2TI', '2S5OY2TI', '2S5OY2TI', '2S5OY2TI', '2S5OY2TI', '2S5OY2TI', '2S5OY2TI', '2S5OY2TI', '2S5OY2TI', '2S5OY2TI', '2S5OY2TI', '2S5OY2TI', '2S5OY2TI', '2S5OY2TI', '2S5OY2TI', '2S5OY2TI', '2S5OY2TI', '2S5OY2TI', '2S5OY2TI', '2S5OY2TI', '2S5OY2TI', '2S5OY2TI', '2S5OY2TI', '2S5OY2TI', '2S5OY2TI', '2S5OY2TI', '2S5OY2TI', '2S5OY2TI'],
+            'strengths': ['個別化', '回復志向', '自我', 'コミュニケーション', '調和性', '収集心', '慎重さ', '信念', '内省', '分析思考', '適応性', 'アレンジ', '目標志向', '着想', '戦略性', 'ポジティブ', '成長促進', '学習欲', '規律性', '活発性', '運命思考', '親密性', '責任感', '社交性', '共感性', '包含', '最上志向', '未来志向', '自己確信', '指令性', '達成欲', '競争性', '公平性', '原点思考'],
+            'rank': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34],
+            'department': ['XXX', 'XXX', 'XXX', 'XXX', 'XXX', 'XXX', 'XXX', 'XXX', 'XXX', 'XXX', 'XXX', 'XXX', 'XXX', 'XXX', 'XXX', 'XXX', 'XXX', 'XXX', 'XXX', 'XXX', 'XXX', 'XXX', 'XXX', 'XXX', 'XXX', 'XXX', 'XXX', 'XXX', 'XXX', 'XXX', 'XXX', 'XXX', 'XXX', 'XXX']
+        }
+    )
+
+    actual = calc_corr(df_input)
+
+    expected = pd.DataFrame(
+        index=['2S5OY2TI'],
+        data={'2S5OY2TI': [1.]}
+    )
+
+    expected.index.name = 'user_name'
+    expected.columns.name = 'user_name'
+
+    assert_frame_equal(actual, expected)
