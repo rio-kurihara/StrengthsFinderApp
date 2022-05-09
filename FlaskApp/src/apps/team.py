@@ -13,6 +13,7 @@ from dash import dcc, html
 from dash.dependencies import Input, Output
 
 from app import app
+# from src.app import app  # pytest のときのみこっち
 
 
 # settings.yaml の読み込み
@@ -231,7 +232,7 @@ def create_display_text_for_lack(
     Args:
         dict_strengths_message (dict): 全資質の意味を説明するテキストを含む辞書 (key=資質名, value=説明テキスト)
         dict_lack_result (dict): チームに不足していると判定された資質の情報を含む辞書
-            例: {'strengths': ['公平性', '慎重さ'], 'mean': [34, 35]:, 'min: [34, 33]}
+            例: {'strengths': ['公平性', '慎重さ'], 'mean': [34, 35], 'min': [34, 33]}
                 (strengths: 不足している資質, mean: チーム内の平均順位, min: チーム内の最低順位)
         index_num (int): 不足している資質のうち、何番目の資質の情報を生成するか
 
