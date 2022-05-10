@@ -1,3 +1,4 @@
+from itertools import groupby
 import json
 import os
 import sys
@@ -33,8 +34,9 @@ all34_exsits_null_path = base_dir + config['all34_exsits_null_path']
 df_mst = pd.read_csv(mst_category_path)
 df_strength_org = pd.read_csv(strengths_path)
 df_top5 = pd.read_csv(top5_path, index_col='user_name')
-df_all = pd.read_csv(all34_exsits_null_path, index_col='user_name')
-df_all = df_all.fillna('nan')
+df_all = pd.read_csv(all34_path)
+df_all_exsits_null = pd.read_csv(all34_exsits_null_path, index_col='user_name')
+df_all_exsits_null = df_all_exsits_null.fillna('nan')
 dict_strengths_message = pd.read_json(mst_message_json_path)
 
 # 資質カテゴリーの設定
@@ -320,19 +322,25 @@ def lack_strengths_in_team(
 @app.callback(Output('lack_strengths_1', 'children'),
               [Input('team_users', 'value')])
 def update_lack_strength_1(list_users):
-    dict_lack_result = lack_strengths_in_team(df_all, list_users)
-    text = create_display_text_for_lack(
-        dict_strengths_message, dict_lack_result, 0)
-    return text
+    if len(list_users) <= 1:
+        return None
+    else:
+        dict_lack_result = lack_strengths_in_team(df_all_exsits_null, list_users)
+        text = create_display_text_for_lack(
+            dict_strengths_message, dict_lack_result, 0)
+        return text
 
 
 @app.callback(Output('lack_strengths_2', 'children'),
               [Input('team_users', 'value')])
 def update_lack_strength_2(list_users):
-    dict_lack_result = lack_strengths_in_team(df_all, list_users)
-    text = create_display_text_for_lack(
-        dict_strengths_message, dict_lack_result, 1)
-    return text
+    if len(list_users) <= 1:
+        return None
+    else:
+        dict_lack_result = lack_strengths_in_team(df_all_exsits_null, list_users)
+        text = create_display_text_for_lack(
+            dict_strengths_message, dict_lack_result, 1)
+        return text
 
 
 # ------------------------------------------------------------------------------
@@ -395,45 +403,6 @@ def compute_prominent_attribute(series, df):
     return diff.sum(axis=1).add(diff_other_top).sort_values()
 
 
-def extract_unique_strength(
-    df: pd.DataFrame, target_user: str, list_users: list, top_n: int = 2
-) -> list:
-    """
-    チーム内における、個人の突出した強みを集計
-
-    Args:
-        df (pd.DataFrame): 資質名とその順位を含むデータフレーム。氏名がindex。
-        target_user (str): ユーザー名
-        list_users (list): ユーザー名（複数）
-        top_n (int): 上位何位までの資質を計算するか
-
-    Returns:
-        ※TODO: 複数の戻り値やめる
-    """
-    # 対象ユーザーのデータを抽出
-    # 順位を 1 始まりにするため +1 する
-    extracted_member_df = merge_series(df, list_users) + 1
-    extracted_target_series = extract_series(df, target_user) + 1
-
-    prominent_scores = compute_prominent_attribute(extracted_target_series, extracted_member_df)
-    sr_mean = extracted_member_df.mean(axis=1)
-
-    # TODO:全体的に処理がわかりづらい。綺麗にする
-    # 下位 top_n 位の資質名を抽出
-    # lack_strength_names = prominent_scores.tail(top_n).index[::-1]
-    # strength_means = sr_mean.loc[lack_strength_names].values
-    # strength_ranks = extracted_target_series.loc[lack_strength_names].values
-
-    computed_prominent = pd.concat([prominent_scores, extracted_target_series, sr_mean],
-                                   axis=1, sort=False)
-    unique_strengths_info = computed_prominent.tail(top_n)
-    strength_names = unique_strengths_info.index.values[::-1]
-    strength_ranks = unique_strengths_info[1].values[::-1]
-    strength_means = unique_strengths_info[2].values[::-1]
-
-    return strength_names, strength_ranks, strength_means
-
-
 def create_display_text_for_unique(
     dict_strengths_message: dict, dict_result: dict, index_num: int, target_user: str
 ) -> str:
@@ -451,7 +420,10 @@ def create_display_text_for_unique(
     strengths_name = dict_result['strengths'][index_num]
     list_message = dict_strengths_message[strengths_name]['長所']
     strengths_message = list_to_bullets_str(list_message)
-    strengths_mean = dict_result['member_avg_rank'][index_num]
+    # 表示の見やすさのため、平均順位を四捨五入する
+    member_average_rank = [int(Decimal(str(x)).quantize(
+        Decimal('0'), rounding=ROUND_HALF_UP)) for x in dict_result['member_avg_rank']]
+    strengths_mean = member_average_rank[index_num]
     target_rank = dict_result['target_rank'][index_num]
 
     text = """
@@ -466,43 +438,98 @@ def create_display_text_for_unique(
     return text
 
 
-def main_extract_unique_strength(
-    df: pd.DataFrame, target_user: str, member_name_list: list, top_n=2
-) -> dict:
+def calc_rank_diff(df: pd.DataFrame, group_users: list, target_user: str) -> pd.DataFrame:
     """
-    main_extract_unique_strength [summary]
-
-    [extended_summary]
+    資質別に、対象ユーザーとグループメンバーの順位の差分を計算
 
     Args:
-        df (pd.DataFrame): [description]
-        target_user (str): [description]
-        member_name_list (list): [description]
-        top_n (int, optional): [description]. Defaults to 2.
+        df (pd.DataFrame): 資質名とその順位を含むデータフレーム。indexが資質、列がユーザー。
+        group_users (list): 集計対象グループのユーザー（複数）※上記 target_user を含むリスト
+        target_user (str): 着目したいユーザー名
+    Returns:
+        df (pd.DataFrame): 対象ユーザーとグループメンバーの順位の差分
+    """
+    group_users_cp = group_users.copy()
+    group_users_cp.remove(target_user)
+    df_diff = pd.DataFrame()
+
+    for _user_name in group_users_cp:
+        # グループメンバーの順位から対象ユーザーの順位を引く
+        sr_diff_tmp = df[_user_name] - df[target_user]
+        sr_diff_tmp.name = _user_name
+        df_diff = pd.concat([df_diff, sr_diff_tmp], axis=1)
+
+    return df_diff
+
+
+def main_extract_unique_strength(
+    df: pd.DataFrame, group_users: list, target_user: str, top_n=2
+) -> dict:
+    """
+    資質別に、対象ユーザーとグループメンバーの順位の差分を計算
+
+    Args:
+        df (pd.DataFrame): 34の資質が全てオープンになっているユーザーのみのデータ
+                           列名: user_name, strengths, rank, deparment
+        group_users (list): 集計対象グループのユーザー（複数）※上記 target_user 含むリスト
+        target_user (str): 着目したいユーザー名
+        top_n (int, optional): 上位何位までの結果を出力するか. デフォルトは 2
 
     Returns:
-        dict: [description]
+        dict: 例
+            dict_result = {'strengths': ['公平性' '調和性'], # ユニークな資質名
+                        'target_rank': [9, 3], # 着目したユーザーの資質順位
+                        'member_avg_rank': [31., 24.] # グループ内の平均順位
+                        }
     """
-    # target_user = "氏名1"
-    # member_name_list = ['氏名1', '氏名2', ...]
+    # 集計対象のグループメンバーのデータを抽出
+    df_extracted_group = df[df['user_name'].isin(group_users)]
+    # 行に資質、列にユーザーとなるようにピボットする
+    df_extracted_group_pivot = df_extracted_group.pivot_table(
+        index="strengths", columns="user_name", values="rank")
 
-    member_name_list.remove(target_user)
-    strength, target_rank, member_average_rank = extract_unique_strength(
-        df, target_user, member_name_list, top_n)
+    # 資質別に、対象ユーザーとグループメンバーの順位の差分を計算
+    df_diff = calc_rank_diff(df_extracted_group_pivot, group_users, target_user)
 
-    member_average_rank = [int(Decimal(str(x)).quantize(
-        Decimal('0'), rounding=ROUND_HALF_UP)) for x in member_average_rank]
-    dict_result = {'strengths': strength,
-                   'target_rank': target_rank,
-                   'member_avg_rank': member_average_rank
+    # 順位差分の合計を計算
+    sr_diff_total = df_diff.sum(axis=1)
+    # 順位差分にランクをつける
+    df_diff_rank = df_diff.rank(method='first', axis=1, ascending=False)
+    print('group user:', group_users)
+
+    # 順位差分を降順で上から2番目の差分の値を取得
+    # 対象グループのユーザーが二名の場合のみ、順位差分の上から二番目が取れないため以下の処理とする
+    if len(group_users) == 2:
+        # フラグ用のデータフレームの全ての値を True にする
+        col_name = df_diff.columns
+        df_flag = df_diff.copy()
+        df_flag.loc[:, col_name] = True
+    else:
+        # 順位差分を降順で上から2番目の差分の値を取得
+        df_flag = df_diff_rank.applymap(lambda x: True if x == 2 else False)
+    # True の数が34になるか確認
+    assert df_flag.sum().sum() == 34
+    diff_total_second = df_diff[df_flag].sum(axis=1)
+    # ユニークスコアの計算：順位差分の合計と、順位差分の上から二番目の値を合計する
+    df_result = pd.concat([sr_diff_total, diff_total_second], axis=1)
+    df_result.columns = ['diff_total', 'diff_second']
+    df_result['unique_score'] = df_result['diff_total'] + df_result['diff_second']
+    # ユニークスコアを降順にソート
+    df_result = df_result.sort_values('unique_score', ascending=False)
+    # ユニークな資質を取得：ユニークスコア上位 N 位の資質
+    unique_strength_names = list(df_result.head(top_n).index)
+    # ユニークな資質の順位を取得
+    unique_strengths_rank = df_extracted_group_pivot[target_user].loc[unique_strength_names].values
+    # 対象ユーザー以外のグループユーザーの平均順位を計算
+    group_users.remove(target_user)
+    sr_mean = df_extracted_group_pivot[group_users].mean(axis=1)
+    # 対象ユーザーのユニークな強みについて、他ユーザーの平均順位を取得
+    unique_strengths_mean = sr_mean.loc[unique_strength_names].values
+
+    dict_result = {'strengths': unique_strength_names,
+                   'target_rank': unique_strengths_rank,
+                   'member_avg_rank': unique_strengths_mean
                    }
-
-    """
-    出力例
-    ['公平性' '調和性']  計算で得られた強み上位top_n個
-    [9 3]                targetの人の資質順位
-    [31.         24.66666667]　member_name_listの人の平均資質順位
-    """
 
     return dict_result
 
@@ -524,30 +551,39 @@ def set_cities_value(available_options):
               [Input('team_users', 'value'),
                Input('user_drop_down', 'value')])
 def update_unique_strestrength(list_users, target_user):
-    text = 'このグループ内における {} さんのユニークな強みは下記の通りです。'.format(target_user)
-    return text
+    if len(list_users) <= 1:
+        return None
+    else:
+        text = 'このグループ内における {} さんのユニークな強みは下記の通りです。'.format(target_user)
+        return text
 
 
 @app.callback(Output('unique_strengths_1', 'children'),
               [Input('team_users', 'value'),
                Input('user_drop_down', 'value')])
 def update_unique_strestrength_1(list_users, target_user):
-    dict_result = main_extract_unique_strength(
-        df_strength_org, target_user, list_users)
-    text = create_display_text_for_unique(
-        dict_strengths_message, dict_result, 0, target_user)
-    return text
+    if len(list_users) <= 1:
+        return None
+    else:
+        dict_result = main_extract_unique_strength(
+            df_all, list_users, target_user)
+        text = create_display_text_for_unique(
+            dict_strengths_message, dict_result, 0, target_user)
+        return text
 
 
 @app.callback(Output('unique_strengths_2', 'children'),
               [Input('team_users', 'value'),
                Input('user_drop_down', 'value')])
 def update_unique_strestrength_2(list_users, target_user):
-    dict_result = main_extract_unique_strength(
-        df_strength_org, target_user, list_users)
-    text = create_display_text_for_unique(
-        dict_strengths_message, dict_result, 1, target_user)
-    return text
+    if len(list_users) <= 1:
+        return None
+    else:
+        dict_result = main_extract_unique_strength(
+            df_all, list_users, target_user)
+        text = create_display_text_for_unique(
+            dict_strengths_message, dict_result, 1, target_user)
+        return text
 
 
 # ------------------------------------------------------------------------------
