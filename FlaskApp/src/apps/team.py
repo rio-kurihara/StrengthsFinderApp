@@ -386,23 +386,6 @@ lack_strengths_cards_row = dbc.Row(
 # ------------------------------------------------------------------------------
 # 機能3 グループ内における個人のユニークな強み: callback の設定
 # ------------------------------------------------------------------------------
-
-def extract_series(df, name):
-    s = df[name]
-    return pd.Series(s.index.values, s.values)
-
-
-def merge_series(df, name_list):
-    series_list = [extract_series(df, name) for name in name_list]
-    return pd.concat(series_list, axis=1)
-
-
-def compute_prominent_attribute(series, df):
-    diff = df.add(-series, axis=0)
-    diff_other_top = -series.add(-df.min(axis=1), axis=0)
-    return diff.sum(axis=1).add(diff_other_top).sort_values()
-
-
 def create_display_text_for_unique(
     dict_strengths_message: dict, dict_result: dict, index_num: int, target_user: str
 ) -> str:
@@ -462,7 +445,7 @@ def calc_rank_diff(df: pd.DataFrame, group_users: list, target_user: str) -> pd.
     return df_diff
 
 
-def main_extract_unique_strength(
+def extract_unique_strength(
     df: pd.DataFrame, group_users: list, target_user: str, top_n=2
 ) -> dict:
     """
@@ -495,7 +478,6 @@ def main_extract_unique_strength(
     sr_diff_total = df_diff.sum(axis=1)
     # 順位差分にランクをつける
     df_diff_rank = df_diff.rank(method='first', axis=1, ascending=False)
-    print('group user:', group_users)
 
     # 順位差分を降順で上から2番目の差分の値を取得
     # 対象グループのユーザーが二名の場合のみ、順位差分の上から二番目が取れないため以下の処理とする
@@ -565,7 +547,7 @@ def update_unique_strestrength_1(list_users, target_user):
     if len(list_users) <= 1:
         return None
     else:
-        dict_result = main_extract_unique_strength(
+        dict_result = extract_unique_strength(
             df_all, list_users, target_user)
         text = create_display_text_for_unique(
             dict_strengths_message, dict_result, 0, target_user)
@@ -579,7 +561,7 @@ def update_unique_strestrength_2(list_users, target_user):
     if len(list_users) <= 1:
         return None
     else:
-        dict_result = main_extract_unique_strength(
+        dict_result = extract_unique_strength(
             df_all, list_users, target_user)
         text = create_display_text_for_unique(
             dict_strengths_message, dict_result, 1, target_user)
