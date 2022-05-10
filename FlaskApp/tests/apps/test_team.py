@@ -1,3 +1,4 @@
+import numpy as np
 import json
 
 import pandas as pd
@@ -6,7 +7,7 @@ from numpy import extract
 from src.apps.team import (calc_mean_and_min, create_display_text_for_lack,
                            lack_strengths_in_team, list_to_bullets_str,
                            sum_rank_each_strengths_category, extract_unique_strength,
-                           create_display_text_for_unique)
+                           create_display_text_for_unique, calc_rank_diff, extract_unique_strength)
 
 
 def test_sum_rank_each_strengths_category():
@@ -20,7 +21,7 @@ def test_sum_rank_each_strengths_category():
     # データフレームにカテゴリ列を追加
     df_top5['category'] = df_top5[['strengths']
                                   ].applymap(dict_strengths_category.get)
-    # サンプルユーザー
+    # サンプルユーザーの設定
     user = '2S5OY2TI'
 
     # カテゴリ別の順位の合計結果
@@ -43,7 +44,7 @@ def test_list_to_bullets_str():
 
 
 def test_create_display_text_for_lack():
-    # サンプルデタの準備
+    # サンプルデータの準備
     dict_strengths_message = pd.read_json('tests/sample_data/mst/strengths_message.json')
     # 任意のグループ内で不足している資質とその平均順位と最低順位
     dict_lack_result = {'strengths': ['公平性', '慎重さ'], 'mean': [34, 35], 'min': [34, 33]}
@@ -125,6 +126,74 @@ def test_lack_strengths_in_team():
     assert actual_2 == expected_2
 
 
+def test_calc_rank_diff():
+    # サンプルデータの読み込み
+    df = pd.read_csv('tests/sample_data/preprocessed/all34_sample.csv')
+    # 集計対象グループのユーザーの設定
+    list_users = ['2S5OY2TI', '04TC6RBN']
+    # 着目したいユーザーの設定
+    target_user = '2S5OY2TI'
+
+    # 集計対象のグループメンバーのデータを抽出
+    df_extracted_group = df[df['user_name'].isin(list_users)]
+    # 行に資質、列にユーザーとなるようにピボットする
+    df_extracted_group_pivot = df_extracted_group.pivot_table(
+        index="strengths", columns="user_name", values="rank")
+
+    excepted = pd.DataFrame(
+        data={
+            '04TC6RBN': [5, 19, -12, -3, 1, 1, -11, 9, 19, 1, -4, 3, 29, -11, 26, -4, -4, -9, -19, -22, -19, -3, 6, -2, -20, -5, 22, 0, -6, 23, -8, 5, -28, 21]
+        }
+    )
+    excepted.index = ['アレンジ', 'コミュニケーション', 'ポジティブ', '信念', '個別化', '公平性', '共感性', '内省', '分析思考',
+                      '包含', '原点思考', '収集心', '回復志向', '学習欲', '慎重さ', '成長促進', '戦略性', '指令性', '最上志向',
+                      '未来志向', '活発性', '目標志向', '着想', '社交性', '競争性', '自己確信', '自我', '規律性', '親密性',
+                      '調和性', '責任感', '運命思考', '達成欲', '適応性']
+
+    actual = calc_rank_diff(df_extracted_group_pivot, list_users, target_user)
+
+    assert_frame_equal(actual, excepted)
+
+
 def test_extract_unique_strength():
-    # TODO 元の関数にバグがありそう。修正する。
-    return None
+    # サンプルデータの読み込み
+    df = pd.read_csv('tests/sample_data/preprocessed/all34_sample.csv')
+    # 集計対象グループのユーザーの設定
+    list_users = ['2S5OY2TI', '04TC6RBN']
+    # 着目したいユーザーの設定
+    target_user = '2S5OY2TI'
+
+    excepted = {'strengths': ['回復志向', '慎重さ'],
+                'target_rank': [2, 7],
+                'member_avg_rank': [31., 33.]}
+
+    actual = extract_unique_strength(df, list_users, target_user, top_n=2)
+
+    assert actual == excepted
+
+
+def test_create_display_text_for_unique():
+    # サンプルデータの読み込み、定義
+    dict_strengths_message = pd.read_json('tests/sample_data/mst/strengths_message.json')
+    dict_unique_strengths = {'strengths': ['回復志向', '慎重さ'],
+                             'target_rank': [2, 7],
+                             'member_avg_rank': [31., 33.]}
+    index_num = 0
+    target_user = '2S5OY2TI'
+
+    excepted = """
+    #### 回復志向
+    
+    ・問題の根本原因を見つけて解決する  
+ ・困ってる人を助ける  
+ ・真正面から問題と向き合える  
+    ***
+    このグループ内の 回復志向 の平均順位は**31位**、  
+    2S5OY2TI さんの順位は**2位**です。
+    """
+
+    actual = create_display_text_for_unique(dict_strengths_message,
+                                            dict_unique_strengths,
+                                            index_num,
+                                            target_user)
+    assert actual == excepted
