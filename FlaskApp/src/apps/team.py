@@ -509,8 +509,8 @@ def extract_unique_strength(
     unique_strengths_mean = sr_mean.loc[unique_strength_names].values
 
     dict_result = {'strengths': unique_strength_names,
-                   'target_rank': unique_strengths_rank,
-                   'member_avg_rank': unique_strengths_mean
+                   'target_rank': list(unique_strengths_rank),
+                   'member_avg_rank': list(unique_strengths_mean)
                    }
 
     return dict_result
