@@ -4,12 +4,13 @@ from logging import getLogger
 import pandas as pd
 import yaml
 
-from GNN_and_GS import GAE
+# from GNN_and_GS import GAE
+from src.GNN_and_GS import GAE  # pytest 時のみこちらでインポートする
 
 logger = getLogger(__name__)
 
 
-def _convert_vertical(df: pd.DataFrame) -> pd.DataFrame:
+def convert_vertical(df: pd.DataFrame) -> pd.DataFrame:
     """ 資質ランキングデータを横持ちから縦持ちに変換する
 
     Args:
@@ -38,7 +39,7 @@ def _convert_vertical(df: pd.DataFrame) -> pd.DataFrame:
     return df_member
 
 
-def _split_top5_and_all34(df: pd.DataFrame) -> pd.DataFrame:
+def split_top5_and_all34(df: pd.DataFrame) -> pd.DataFrame:
     """ 全メンバーの資質ランキングデータを、TOP5 のデータと全資質 (34位まで) のデータに分割
     ※上位 5 位までしか結果を出していない人は全資質用のデータから除外する
 
@@ -62,7 +63,7 @@ def _split_top5_and_all34(df: pd.DataFrame) -> pd.DataFrame:
     return df_top5, df_all34
 
 
-def _check_top5_null(df: pd.DataFrame) -> pd.DataFrame:
+def check_top5_null(df: pd.DataFrame) -> pd.DataFrame:
     """ 1~5位 のデータが NULL ならそのユーザーを削除する
 
     Args:
@@ -75,9 +76,16 @@ def _check_top5_null(df: pd.DataFrame) -> pd.DataFrame:
     df_top5 = df[df['rank'] <= 5]
 
     if any(df_top5['strengths'].isnull()):
-        logger.warning('top5_null_exists it is deleted')
-        list_drop = df_top5[df_top5['strengths'].isnull()].index
-        df = df.drop(list_drop)
+        # 除外するユーザー名をリストで取得
+        sr_null_user_names = df_top5[df_top5['strengths'].isnull()]['user_name']
+        list_null_user_unique = set(list(sr_null_user_names))
+        drop_index = df.index[df['user_name'].isin(list_null_user_unique)]
+        # 該当するユーザーの行を全て削除
+        df = df.drop(drop_index, axis=0)
+        # インデックスを振り直す
+        df = df.reset_index(drop=True)
+
+        logger.warning('Deleted user name {} because the TOP5 data contained NULL'.format(list_null_user_unique))
 
     return df
 
@@ -124,7 +132,9 @@ def main():
 
     # データの整形
     # 横持ちに変換
-    df_vertical = _convert_vertical(df_member_org)
+    df_vertical = convert_vertical(df_member_org)
+    # TOP5のデータがNULLでないかチェック
+    df_vertical = check_top5_null(df_vertical)
 
     # チーム名を追加
     df_vertical_add_demogura = pd.merge(
@@ -134,11 +144,8 @@ def main():
     df_vertical_add_demogura = df_vertical_add_demogura.drop('name', axis=1)
     df_vertical_add_demogura = df_vertical_add_demogura.set_index('user_name')
 
-    # TOP5のデータがNULLでないかチェック
-    df_vertical_add_demogura = _check_top5_null(df_vertical_add_demogura)
-
     # TOP5のデータとALL34のデータに分割(上位5つしか結果を出していない人はALL34から除外)
-    df_top5, df_all34 = _split_top5_and_all34(df_vertical_add_demogura)
+    df_top5, df_all34 = split_top5_and_all34(df_vertical_add_demogura)
 
     # Scoreの追加
     dict_rank_to_score = {1: 5, 2: 4, 3: 3, 4: 2, 5: 1}

@@ -124,7 +124,7 @@ def search_stable_matching(set_A, set_B):
 
 
 # settings
-with open('settings.yaml') as f:
+with open('src/settings.yaml') as f:
     config = yaml.load(f, Loader=yaml.SafeLoader)
 strengths_path = config['base_dir'] + config['strengths_path']
 top5_path = config['base_dir'] + config['top5_path']

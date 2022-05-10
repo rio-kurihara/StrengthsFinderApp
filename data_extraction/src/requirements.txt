@@ -1,15 +1,6 @@
-# base
 attrdict
-PyYAML
-fsspec
-gcsfs
-
-# analysis
-matplotlib
-networkx
-numpy
-pandas
-scikit-learn
-torch-geometric==1.7.2
-torch-scatter==2.0.8
-torch-sparse==0.6.11
+pytest
+torch_geometric
+torch_sparse
+torch_scatter
+networkx==2.6.3 # scipy.sparse.coo_array が最新バージョンだと対応していないため

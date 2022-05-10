@@ -85,8 +85,9 @@ def convert_parsed_txt(list_text: list) -> list:
 
 
 def check_parsed_txt(list_strength):
-    status = False
     # TODO: list_strengths のチェックを追加
-    if True:
+    if len(list_strength) == 34:
         status = True
+    else:
+        status = False
     return status

@@ -9,7 +9,7 @@ from google.cloud import storage
 
 
 # settings.yaml の読み込み
-with open('settings.yaml') as f:
+with open('src/settings.yaml') as f:
     config = yaml.load(f, Loader=yaml.SafeLoader)
 # パスを設定
 top5_path = config['base_dir'] + config['top5_path']

@@ -14,7 +14,7 @@ from apps.pdf_loader import check_parsed_txt, convert_parsed_txt, pdf_to_txt
 
 
 # settings.yaml の読み込み
-with open('settings.yaml') as f:
+with open('src/settings.yaml') as f:
     config = yaml.load(f, Loader=yaml.SafeLoader)
 
 
@@ -143,9 +143,10 @@ def update_output(_, user_name, department, contents, filename):
 
     # 一時保存したファイルを GCS にアップロードする
     upload_pdf_fname = datetime_now + filename
-    upload_pdf_path = base_dir + 'pdf/' + upload_pdf_fname
+    upload_pdf_path = 'pdf/' + upload_pdf_fname
     blob = bucket.blob(upload_pdf_path)
     blob.upload_from_filename(pdf_save_path)
+    print('PDF file upload done')
 
     # PDF をパースしてテキストにする
     txt = pdf_to_txt(pdf_save_path)

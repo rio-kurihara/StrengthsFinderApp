@@ -8,10 +8,10 @@ from dash import dcc, html
 from dash.dependencies import Input, Output
 
 from app import app
-
+# from src.app import app  # pytest のときのみこっち
 
 # settings.yaml の読み込み
-with open('settings.yaml') as f:
+with open('src/settings.yaml') as f:
     config = yaml.load(f, Loader=yaml.SafeLoader)
 
 # パスを設定
