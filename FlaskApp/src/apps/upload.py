@@ -66,8 +66,8 @@ def save_pdf_to_local(contents: str, save_path: str) -> None:
 
 def save_pdf_to_gcs(pdf_local_path, upload_gcs_path):
     # ローカルに一時保存したPDFファイルを GCS にアップロードする
-    # blob = bucket.blob(upload_gcs_path)
-    # blob.upload_from_filename(pdf_local_path)
+    blob = bucket.blob(upload_gcs_path)
+    blob.upload_from_filename(pdf_local_path)
     print('PDF file upload done')
 
 
