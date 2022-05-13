@@ -2,8 +2,8 @@ from dash import dcc, html
 from dash.dependencies import Input, Output
 
 from app import app
-from apps import (download, matching, overview, person, qa, team, top, upload,
-                  upload_done, auth)
+from apps import (auth, custom_error, download, matching, overview, person, qa,
+                  team, top, upload, upload_done)
 from navigation_menu import nav_menu
 
 
@@ -64,7 +64,7 @@ def display_page(pathname):
     elif pathname == '/QA':
         return qa.layout
     else:
-        return '404'
+        return custom_error.layout_404
 
 
 if __name__ == '__main__':

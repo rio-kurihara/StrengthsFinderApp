@@ -1,5 +1,6 @@
 import yaml
-from flask import abort, request
+from flask import request
+from apps import custom_error
 
 # settings
 with open('src/settings.yaml') as f:
@@ -17,5 +18,5 @@ def check_ip(func):
             return func(*args, **kwargs)
         else:  # 許可している IP アドレス以外からのアクセスなら 403
             print("403")
-            return abort(403)
+            return custom_error.layout_403
     return wrapper
