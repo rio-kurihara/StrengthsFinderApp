@@ -26,4 +26,6 @@ strengths_desc_path: mst/dict_strengths_desc.pkl
 
 tmp_pdf_save_dir: data/tmp_upload/
 
+# アクセス可能な IP アドレスを制限する　※制限しない場合は空のリストにする
+accepted_ip: ['xxx.xx.xx.xx']
 port: 8080
