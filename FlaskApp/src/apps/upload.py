@@ -1,17 +1,19 @@
-import base64
-import datetime
+import json
 import os
 
 import dash_bootstrap_components as dbc
 import pandas as pd
 import yaml
-from dash import dcc, html, dash_table
+from app import app
+from dash import dash_table, dcc, html
 from dash.dependencies import Input, Output, State
 from google.cloud import storage
 
-from app import app
-from apps.pdf_loader import check_parsed_txt, convert_parsed_txt, pdf_to_txt
-
+from apps.pdf_loader import (check_parsed_txt, convert_parsed_txt,
+                             create_fname_for_save_pdf,
+                             is_correct_input_strengths, is_not_input_empty,
+                             is_pdf, pdf_to_txt, save_pdf_to_gcs,
+                             save_pdf_to_local)
 
 # settings.yaml の読み込み
 with open('src/settings.yaml') as f:
@@ -32,62 +34,6 @@ client = storage.Client()
 bucket = client.get_bucket(bucket_name)
 
 
-def create_fname_for_save_pdf(filename):
-    # PDF を保存するファイル名を生成する: "現在日時＋アップロード時のファイル名.pdf"
-    # 現在日時を取得
-    dt_now_jst_aware = datetime.datetime.now(
-        datetime.timezone(datetime.timedelta(hours=9))
-    )
-    datetime_now = dt_now_jst_aware.strftime('%Y%m%d_%H%M%S_')
-
-    # PDF を保存するパスを生成
-    pdf_save_fname = datetime_now + filename
-
-    return pdf_save_fname
-
-
-def save_pdf_to_local(contents: str, save_path: str) -> None:
-    """ PDF ファイルをローカルに保存する
-
-    Args:
-        contents (str): ユーザーから送られてきたファイル（バイナリ）
-        save_path (str): 保存先のパス
-    """
-    # 保存先のディレクトリを作成
-    os.makedirs(tmp_pdf_save_dir, exist_ok=True)
-    # str -> bytes
-    bytes_base64 = contents.encode("utf8").split(b";base64,")[1]
-    # Base64をデコード
-    decoded_data = base64.decodebytes(bytes_base64)
-
-    with open(save_path, "wb") as fp:
-        fp.write(decoded_data)
-
-
-def save_pdf_to_gcs(pdf_local_path, upload_gcs_path):
-    # ローカルに一時保存したPDFファイルを GCS にアップロードする
-    blob = bucket.blob(upload_gcs_path)
-    blob.upload_from_filename(pdf_local_path)
-    print('PDF file upload done')
-
-
-def format_to_dataframe(list_strengths: list) -> pd.DataFrame:
-    """
-    PDF をパースしたリストをデータフレーム化する
-
-    Args:
-        list_strengths (list): 資質名のリスト（5個 or 34個 の要素）
-    Return:
-        pd.DataFrame:
-    """
-    df = pd.DataFrame(list_strengths)
-    df.index = df.index + 1  # 1始まりにするため
-    df = df.reset_index()
-    df.columns = ['rank', 'strengths']
-
-    return df
-
-
 def append_row_to_csv_strengths(user_name, df_strengths_new):
     # 既存の csv ファイルを GCS から読み込み、新しいデータを追加する
     df_strengths_org = pd.read_csv(strengths_path)
@@ -95,6 +41,8 @@ def append_row_to_csv_strengths(user_name, df_strengths_new):
     # 新しいデータを追加した csv ファイルを GCS にアップロードする
     df_strengths_org.to_csv(strengths_path, index=False)
     df_strengths_org.to_csv(strengths_bkup_path, index=False)
+
+    print('original csv file update done')
 
 
 def append_row_to_csv_demogra(user_name, department):
@@ -135,8 +83,9 @@ department_input_form = dbc.FormGroup(
 upload_pdf_form = dbc.FormGroup(
     [
         html.P('ストレングスファインダーのHPからダウンロードしたPDFをアップロードしてください'),
+        html.P('※日本語データのみ対応'),
         dcc.Upload(
-            id='datatable-upload',
+            id='pdf-upload',
             children=html.Div(
                 [
                     'Drag and Drop or ',
@@ -173,60 +122,88 @@ data_table = dash_table.DataTable(
     fill_width=False
 )
 
-upload_button = dbc.Button("アップロード",
+upload_button = dbc.Button("送信",
                            id='upload-button',
                            color="success",
                            n_clicks=0,
-                           href="/data/upload_done",
-                           external_link=True
+                           href="/data/upload_result",
+                           external_link=True,
+                           loading_state={'component_name': '',
+                                          'is_loading': '',
+                                          'prop_name': ''}
+                           #    type='submit',
+                           #    value='user-name',
                            )
 layout = html.Div(
     [
         header_contents,
         upload_form,
         html.Br(),
+        html.Div(id='pdf-upload-state'),
         data_table,
         html.Br(),
-        upload_button
+        upload_button,
+        html.Div(id='output-state')
     ]
 )
 
+
+@app.callback(Output('datatable-upload-container', 'data'),
+              Output('datatable-upload-container', 'columns'),
+              Output('pdf-upload-state', 'children'),
+              Input('pdf-upload', 'contents'),
+              State('pdf-upload', 'filename'))
 # PDFファイルがユーザーからアプリにアップロードされる（この時点で中身はbinary）
-
-
-@ app.callback(Output('datatable-upload-container', 'data'),
-               Output('datatable-upload-container', 'columns'),
-               Input('datatable-upload', 'contents'),
-               State('datatable-upload', 'filename'))
 def update_output(contents, filename):
     if contents is None:
-        return [{}], []
-
-    # 保存するファイル名を生成（"現在日時＋アップロード時のファイル名.pdf"）
-    save_fname = create_fname_for_save_pdf(filename)
-    # post された バイナリデータを文字列に変換し、一時的にローカルに保存
-    local_save_path = os.path.join(tmp_pdf_save_dir, save_fname)
-    save_pdf_to_local(contents, local_save_path)
-    # ローカルに一時保存したPDFファイルを GCS にアップロードする
-    upload_gcs_path = 'pdf/' + save_fname
-    save_pdf_to_gcs(local_save_path, upload_gcs_path)
-    # PDF をパースしてテキストにする
-    txt = pdf_to_txt(local_save_path)
-    list_strengths = convert_parsed_txt(txt)
-    parse_status = check_parsed_txt(list_strengths)
-
-    # ローカルに一時保存していた PDF ファイルの削除
-    os.remove(local_save_path)
-
-    if parse_status:
-        # パースした結果をデータフレーム化する
-        df_strengths = format_to_dataframe(list_strengths)
-        output = df_strengths.to_dict('records'), \
-            [{"name": i, "id": i} for i in df_strengths.columns]
+        return [{}], [], ''
+    # PDF ファイル以外がアップロードされた場合はエラーメッセージを表示する
+    if not is_pdf(filename):
+        m = dbc.Alert("PDF ファイルをアップロードしてください。",
+                      color="danger",
+                      style={'width': '50%'})
+        return [{}], [], m
     else:
-        output = 'PDFの読み込みに失敗しました。お手数ですが手動入力の程お願い致します。'
+        # アップロードされた PDF ファイルを一時的にローカルに保存する
+        #  保存するファイル名を生成（"現在日時＋アップロード時のファイル名.pdf"）
+        save_fname = create_fname_for_save_pdf(filename)
+        local_save_path = os.path.join(tmp_pdf_save_dir, save_fname)
+        #  保存先のディレクトリを作成
+        os.makedirs(tmp_pdf_save_dir, exist_ok=True)
+        #  ローカルに保存
+        save_pdf_to_local(contents, local_save_path)
 
-    return output
+        #  ローカルに一時保存した PDF ファイルを GCS にアップロードする
+        upload_gcs_path = 'pdf/' + save_fname
+        save_pdf_to_gcs(bucket, local_save_path, upload_gcs_path)
+
+        # PDF をパースしてテキストにする
+        txt = pdf_to_txt(local_save_path)
+        list_strengths = convert_parsed_txt(txt)
+        parse_status = check_parsed_txt(list_strengths)
+        print('PDF file parse done')
+
+        # ローカルに一時保存していた PDF ファイルの削除
+        os.remove(local_save_path)
+        print('deleted PDF file at local')
+
+        # データテーブル用に列名を定義する
+        columns = [{'name': 'rank', 'id': 'rank'},
+                   {"name": 'strengths', "id": 'strengths'}]
+
+        if parse_status:
+            m = dbc.Alert("以下の内容が正しければページ下部の「送信」ボタンを押してください。", color="success"),
+            # パースした結果をデータテーブルに渡すために dict にする
+            data = [{'rank': i, 'strengths': strengths_name}
+                    for i, strengths_name in enumerate(list_strengths, 1)]
+            return data, columns, m
+        else:
+            m = dbc.Alert('PDFの読み込みに失敗しました。お手数ですが以下のフォームから手動入力をお願い致します。',
+                          color="danger",
+                          style={'width': '50%'})
+            # 手入力用に空のデータテーブルを作成
+            empty_data = [{'rank': i, 'strengths': ''} for i in range(1, 35)]
+            return empty_data, columns, m
 
 
 @app.callback(Output('output-state', 'children'),
@@ -234,16 +211,32 @@ def update_output(contents, filename):
               State('user-name', 'value'),
               State('department', 'value'),
               Input('upload-button', 'n_clicks'))
-def display_output(rows, user_name, department, _):
-    pruned_rows = []
-    for row in rows:
-        # require that all elements in a row are specified
-        # the pruning behavior that you need may be different than this
-        if all([cell != '' for cell in row.values()]):
-            pruned_rows.append(row)
+def update_gcs_csv(rows, user_name, department, n_clicks):
+    if n_clicks >= 1:
+        # 入力データをチェックする関数が全て True の場合のみ GCS へのアップロード処理が走る
+        input_check_state = {'user_name': is_not_input_empty(user_name),
+                             'department': is_not_input_empty(department),
+                             'strengths': is_correct_input_strengths(rows)
+                             }
 
-    df_strengths_new = pd.DataFrame.from_dict(pruned_rows)
+        if all(input_check_state.values()):
+            # 資質のテーブルデータを読み込む
+            pruned_rows = []
+            for row in rows:
+                # require that all elements in a row are specified
+                # the pruning behavior that you need may be different than this
+                if all([cell != '' for cell in row.values()]):
+                    pruned_rows.append(row)
 
-    # GCS に新しいデータをアップロード
-    append_row_to_csv_strengths(user_name, df_strengths_new)
-    append_row_to_csv_demogra(user_name, department)
+            df_strengths_new = pd.DataFrame.from_dict(pruned_rows)
+
+            # GCS に新しいデータをアップロード
+            append_row_to_csv_strengths(user_name, df_strengths_new)
+            append_row_to_csv_demogra(user_name, department)
+
+        # 入力データが正しいか否かの state を json に保存しておく
+        #  ∵「アップロード結果」のページで表示内容を条件分岐するため
+        #  TODO: dash は stateless らしいのでこの書き方にしているが、より良い方法あるか検討する
+        json_save_path = os.path.join(tmp_pdf_save_dir, 'input_check_state.json')
+        with open(json_save_path, 'w') as f:
+            json.dump(input_check_state, f, indent=4)
