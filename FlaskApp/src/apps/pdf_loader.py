@@ -1,3 +1,7 @@
+import os
+import base64
+import datetime
+import pandas as pd
 from io import StringIO
 
 from pdfminer.converter import TextConverter
@@ -68,26 +72,120 @@ def convert_parsed_txt(list_text: list) -> list:
 
     list_strengths = []
 
-    for rank in range(1, 35):
-        # list_text から資質部分のみを抜き出した文字列の例: '1. 1.  目標志向' or 1.1.  目標志向 目標志向
-        extracted_strengths = [x for x in list_text if x.startswith('{}.'.format(rank))][0]
-        # 資質リストを作成するために、資質名のみを抜き出した例: ['目標志向'] or ['目標志向', '目標志向']
-        list_strength_names = [x for x in extracted_strengths.split(' ') if not x.startswith('{}.'.format(rank)) and not x == '']
-        # list_strength_names が重複する場合があるため、 set をとって資質名を取得: ['目標志向']
-        set_strength_name = set(list_strength_names)
-        # 資質名の文字列を取得: '目標志向'
-        strength_name = list(set_strength_name)[0]
+    try:
+        for rank in range(1, 35):
+            # list_text から資質部分のみを抜き出した文字列の例: '1. 1.  目標志向' or 1.1.  目標志向 目標志向
+            extracted_strengths = [x for x in list_text if x.startswith('{}.'.format(rank))][0]
+            # 資質リストを作成するために、資質名のみを抜き出した例: ['目標志向'] or ['目標志向', '目標志向']
+            list_strength_names = [x for x in extracted_strengths.split(' ') if not x.startswith('{}.'.format(rank)) and not x == '']
+            # list_strength_names が重複する場合があるため、 set をとって資質名を取得: ['目標志向']
+            set_strength_name = set(list_strength_names)
+            # 資質名の文字列を取得: '目標志向'
+            strength_name = list(set_strength_name)[0]
 
-        # 資質名をリストに追加
-        list_strengths.append(strength_name)
-
+            # 資質名をリストに追加
+            list_strengths.append(strength_name)
+    except:
+        # パースが上手くいかなかった場合、list_strengths は空のリストのまま返す
+        # TODO：エラーハンドリングうまいことやりたい
+        pass
     return list_strengths
 
 
 def check_parsed_txt(list_strength):
-    # TODO: list_strengths のチェックを追加
     if len(list_strength) == 34:
         status = True
     else:
         status = False
     return status
+
+
+def create_fname_for_save_pdf(filename):
+    # PDF を保存するファイル名を生成する: "現在日時＋アップロード時のファイル名.pdf"
+    # 現在日時を取得
+    dt_now_jst_aware = datetime.datetime.now(
+        datetime.timezone(datetime.timedelta(hours=9))
+    )
+    datetime_now = dt_now_jst_aware.strftime('%Y%m%d_%H%M%S_')
+
+    # PDF を保存するパスを生成
+    pdf_save_fname = datetime_now + filename
+
+    return pdf_save_fname
+
+
+def save_pdf_to_local(contents: str, save_path: str) -> None:
+    """ バイナリデータを文字列に変換し、PDF ファイルとしてローカルに保存する
+
+    Args:
+        contents (str): ユーザーから送られてきたファイル（バイナリ）
+        save_path (str): 保存先のパス
+    """
+    # str -> bytes
+    bytes_base64 = contents.encode("utf8").split(b";base64,")[1]
+    # Base64をデコード
+    decoded_data = base64.decodebytes(bytes_base64)
+
+    with open(save_path, "wb") as fp:
+        fp.write(decoded_data)
+
+    print('saved PDF file to local')
+
+
+def save_pdf_to_gcs(bucket, pdf_local_path, upload_gcs_path):
+    # ローカルに一時保存したPDFファイルを GCS にアップロードする
+    blob = bucket.blob(upload_gcs_path)
+    blob.upload_from_filename(pdf_local_path)
+    print('saved PDF file to GCS')
+
+
+def format_to_dataframe(list_strengths: list) -> pd.DataFrame:
+    """
+    PDF をパースしたリストをデータフレーム化する
+
+    Args:
+        list_strengths (list): 資質名のリスト（5個 or 34個 の要素）
+    Return:
+        pd.DataFrame:
+    """
+    df = pd.DataFrame(list_strengths)
+    df.index = df.index + 1  # 1始まりにするため
+    df = df.reset_index()
+    df.columns = ['rank', 'strengths']
+
+    return df
+
+
+def is_pdf(filename: str) -> bool:
+    # ファイルが PDF か否かを返す関数
+    # ファイル名から拡張子を取得
+    root_ext_pair = os.path.splitext(filename)
+    ext = root_ext_pair[1]
+
+    # PDF ファイルのみ True を返す
+    if ext == '.pdf':
+        return True
+    else:
+        return False
+
+
+def is_not_input_empty(input_value: str) -> bool:
+    # 入力データが空でなればTrue、空ならFalseを返す関数
+    if input_value != ' ':
+        return True
+    else:
+        return False
+
+
+def is_correct_input_strengths(input_rows: list) -> bool:
+    """
+    ユーザーが入力した資質ランキングのテーブルが正しい形式になっているか確認
+    正しければ True, そうでなければ False を返す
+
+    Args:
+        input_rows (list): dash_table.DataTable() から入力されたデータ
+    """
+    # 空のデータが含まれないか確認
+    flag = [True if dict_row['strengths'] != '' else False for dict_row in input_rows]
+
+    return all(flag)

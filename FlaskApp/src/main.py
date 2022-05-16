@@ -3,7 +3,7 @@ from dash.dependencies import Input, Output
 
 from app import app
 from apps import (auth, custom_error, download, matching, overview, person, qa,
-                  team, top, upload, upload_done)
+                  team, top, upload, upload_result)
 from navigation_menu import nav_menu
 
 
@@ -57,8 +57,8 @@ def display_page(pathname):
         return matching.layout
     elif pathname == '/data/upload':
         return upload.layout
-    elif pathname == '/data/upload_done':
-        return upload_done.layout
+    elif pathname == '/data/upload_result':
+        return upload_result.layout
     elif pathname == '/data/download':
         return download.layout
     elif pathname == '/QA':
