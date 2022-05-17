@@ -2,24 +2,21 @@ from typing import Union
 
 import dash_bootstrap_components as dbc
 import pandas as pd
-import plotly.graph_objs as go
 import yaml
-from dash import dcc, html
+from app import app
+from dash import html
 from dash.dependencies import Input, Output
 from dash_extensions import Download
 from dash_extensions.snippets import send_data_frame
-
-from app import app
-
 
 # settings
 with open('src/settings.yaml') as f:
     config = yaml.load(f, Loader=yaml.SafeLoader)
 strengths_path = config['base_dir'] + config['strengths_path']
-demogra_path = config['base_dir'] + config['demogra_path']
+department_path = config['base_dir'] + config['demogra_path']
 
-# サンプルデータの作成（データフレーム）
-df_sample_mst = pd.DataFrame(
+# 表示用にサンプルデータを作成（データフレーム）
+df_sample_department = pd.DataFrame(
     {
         "name": ["氏名1", "氏名2", "氏名3", "..."],
         "department": ["AN", "DE", "DS", "..."],
@@ -36,18 +33,17 @@ df_sample_strengths = pd.DataFrame(
 )
 
 # layout に追加するコンポーネントの作成
-sample_mst_card = dbc.CardBody(
+sample_department_card = dbc.CardBody(
     [
-        dbc.Table.from_dataframe(df_sample_mst, bordered=True, hover=True),
+        dbc.Table.from_dataframe(df_sample_department, bordered=True, hover=True),
         dbc.Button("Download", color="success", className="mt-auto", id="mst_download_btn")
     ],
 )
 
-sample_mst_layout = [
+sample_department_layout = [
     dbc.CardHeader("Sample：所属部署マスタ"),
-    sample_mst_card
+    sample_department_card
 ]
-
 
 sample_strengths_card = dbc.CardBody(
     [
@@ -63,7 +59,7 @@ sample_strengths_layout = [
 
 layout_samples = dbc.Row(
     [
-        dbc.Col(dbc.Card(sample_mst_layout, color="dark", outline=True)),
+        dbc.Col(dbc.Card(sample_department_layout, color="dark", outline=True)),
         dbc.Col(dbc.Card(sample_strengths_layout, color="dark", outline=True)),
     ],
     className="mb-4",
@@ -83,27 +79,28 @@ considerations_contents = dbc.Alert(
         html.P(
             "・本サイトからダウンロードしたデータには個人情報が含まれます。取り扱いには十分注意し、社外への情報共有は絶対に行わないでください"),
         html.P("・本サイトで収集したデータは、社内取り扱いのみに限定します"),
-        html.P("・本サイトへのアクセスはBrainPadネットワークのみから許されています")
+        html.P("・本サイトへのアクセスは社内ネットワークのみから許されています")
     ], color='warning'
 )
 
 layout = html.Div(
-    [header_contents,
-     considerations_contents,
-     layout_samples,
-     Download(id="mst_download"),
-     Download(id="strengths_download")
-     ]
+    [
+        header_contents,
+        considerations_contents,
+        layout_samples,
+        Download(id="mst_download"),
+        Download(id="strengths_download")
+    ]
 )
 
 
 @app.callback(Output("mst_download", "data"),
               [Input('mst_download_btn', 'n_clicks')])
 def download_demogra_csv(n_clicks: Union[int, None]) -> Union[dict, None]:
-    """ダウンロードボタンがクリックされたらデモグラファイルをダウンロード"""
+    """ダウンロードボタンがクリックされたら所属リストのファイルをダウンロード"""
     if type(n_clicks) == int:
-        df = pd.read_csv(demogra_path)
-        dataframe_content = send_data_frame(df.to_csv, filename="member_demogra.csv")
+        df = pd.read_csv(department_path)
+        dataframe_content = send_data_frame(df.to_csv, filename="member_demogra.csv", index=False)
         return dataframe_content
     else:
         return None
@@ -112,10 +109,10 @@ def download_demogra_csv(n_clicks: Union[int, None]) -> Union[dict, None]:
 @app.callback(Output("strengths_download", "data"),
               [Input('strengths_download_btn', 'n_clicks')])
 def download_strengths_csv(n_clicks: Union[int, None]) -> Union[dict, None]:
-    """ダウンロードボタンがクリックされたら資質ファイルをダウンロード"""
+    """ダウンロードボタンがクリックされたら資質順位のファイルをダウンロード"""
     if type(n_clicks) == int:
         df = pd.read_csv(strengths_path)
-        dataframe_content = send_data_frame(df.to_csv, filename="member_strengths.csv")
+        dataframe_content = send_data_frame(df.to_csv, filename="member_strengths.csv", index=False)
         return dataframe_content
     else:
         return None
