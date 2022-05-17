@@ -1,0 +1,8 @@
+# Change your GCP Project ID
+project_id: <your-project-id>
+
+display_name: sf-app-preprocess
+image_name: torch18gpu_container_image
+image_tag: latest
+location: asia-northeast1
+api_endpoint: asia-northeast1-aiplatform.googleapis.com
