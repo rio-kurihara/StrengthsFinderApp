@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 
@@ -24,9 +25,13 @@ with open('src/settings.yaml') as f:
 tmp_pdf_save_dir = config['tmp_pdf_save_dir']
 base_dir = config['base_dir']
 strengths_path = base_dir + config['strengths_path']
-strengths_bkup_path = base_dir + config['strengths_bkup_path']
 demogra_path = base_dir + config['demogra_path']
-demogra_bkup_path = base_dir + config['demogra_bkup_path']
+# バックアップ用の csv は "ファイル名_bkup_日付.csv"
+today = str(datetime.date.today())
+strengths_bkup_path = strengths_path.replace('strengths.csv',
+                                             'strengths_bkup_{}.csv'.format(today))
+demogra_bkup_path = demogra_path.replace('demogra.csv',
+                                         'demogra_bkup_{}.csv'.format(today))
 
 # GCS の設定
 bucket_name = config['bucket_name']
@@ -34,25 +39,25 @@ client = storage.Client()
 bucket = client.get_bucket(bucket_name)
 
 
-def append_row_to_csv_strengths(user_name, df_strengths_new):
+def append_row_to_csv_strengths(user_name: str, df: pd.DataFrame) -> None:
     # 既存の csv ファイルを GCS から読み込み、新しいデータを追加する
-    df_strengths_org = pd.read_csv(strengths_path)
-    df_strengths_org[user_name] = df_strengths_new['strengths']
+    df_org = pd.read_csv(strengths_path)
+    df_org[user_name] = df['strengths']
     # 新しいデータを追加した csv ファイルを GCS にアップロードする
-    df_strengths_org.to_csv(strengths_path, index=False)
-    df_strengths_org.to_csv(strengths_bkup_path, index=False)
+    df_org.to_csv(strengths_path, index=False)
+    df_org.to_csv(strengths_bkup_path, index=False)
 
     print('original csv file update done')
 
 
-def append_row_to_csv_demogra(user_name, department):
+def append_row_to_csv_demogra(user_name: str, department; str) -> None:
     # 既存の csv ファイルを GCS から読み込み、新しいデータを追加する
-    df_demogra = pd.read_csv(demogra_path)
-    sr_demogra_input = pd.Series([user_name, department], index=["name", "department"])
-    df_demogra = df_demogra.append(sr_demogra_input, ignore_index=True)
+    df_org = pd.read_csv(demogra_path)
+    sr_input = pd.Series([user_name, department], index=["name", "department"])
+    df_org = df_org.append(sr_input, ignore_index=True)
     # GCS にアップロードする
-    df_demogra.to_csv(demogra_path, index=False)
-    df_demogra.to_csv(demogra_bkup_path, index=False)
+    df_org.to_csv(demogra_path, index=False)
+    df_org.to_csv(demogra_bkup_path, index=False)
 
 
 # layout に追加するコンポーネントの作成
@@ -131,8 +136,6 @@ upload_button = dbc.Button("送信",
                            loading_state={'component_name': '',
                                           'is_loading': '',
                                           'prop_name': ''}
-                           #    type='submit',
-                           #    value='user-name',
                            )
 layout = html.Div(
     [
@@ -153,7 +156,7 @@ layout = html.Div(
               Output('pdf-upload-state', 'children'),
               Input('pdf-upload', 'contents'),
               State('pdf-upload', 'filename'))
-# PDFファイルがユーザーからアプリにアップロードされる（この時点で中身はbinary）
+# ユーザーからファイルがアップロードされると以下の処理が走る（この時点で中身はbinary）
 def update_output(contents, filename):
     if contents is None:
         return [{}], [], ''
@@ -164,7 +167,14 @@ def update_output(contents, filename):
                       style={'width': '50%'})
         return [{}], [], m
     else:
-        # アップロードされた PDF ファイルを一時的にローカルに保存する
+        """ 処理の流れ
+        1. アップロードされた PDF ファイルを一時的にローカルに保存する
+        2. ローカルに保存した PDF ファイルを GCS にアップロードする
+        3. ローカルに保存した PDF ファイルを読み込み、定義済みの形にパースする
+        4. ローカルに保存した PDF ファイルを削除する
+        5. 3.でパースしたデータを dash_table.DataTable に渡せる形に整形し、return する
+        """
+        # 1.アップロードされた PDF ファイルを一時的にローカルに保存する
         #  保存するファイル名を生成（"現在日時＋アップロード時のファイル名.pdf"）
         save_fname = create_fname_for_save_pdf(filename)
         local_save_path = os.path.join(tmp_pdf_save_dir, save_fname)
@@ -173,21 +183,22 @@ def update_output(contents, filename):
         #  ローカルに保存
         save_pdf_to_local(contents, local_save_path)
 
-        #  ローカルに一時保存した PDF ファイルを GCS にアップロードする
+        # 2.ローカルに保存した PDF ファイルを GCS にアップロードする
         upload_gcs_path = 'pdf/' + save_fname
         save_pdf_to_gcs(bucket, local_save_path, upload_gcs_path)
 
-        # PDF をパースしてテキストにする
+        # 3.ローカルに保存した PDF ファイルを読み込み、定義済みの形にパースする
         txt = pdf_to_txt(local_save_path)
         list_strengths = convert_parsed_txt(txt)
         parse_status = check_parsed_txt(list_strengths)
         print('PDF file parse done')
 
-        # ローカルに一時保存していた PDF ファイルの削除
+        # 4.ローカルに保存した PDF ファイルを削除
         os.remove(local_save_path)
         print('deleted PDF file at local')
 
-        # データテーブル用に列名を定義する
+        # 5.3.でパースしたデータを dash_table.DataTable に渡せる形に整形し、return する
+        #  データテーブル用に列名を定義する
         columns = [{'name': 'rank', 'id': 'rank'},
                    {"name": 'strengths', "id": 'strengths'}]
 
@@ -198,6 +209,7 @@ def update_output(contents, filename):
                     for i, strengths_name in enumerate(list_strengths, 1)]
             return data, columns, m
         else:
+            # 読み込みに失敗した場合は、ユーザーに手入力してもらう
             m = dbc.Alert('PDFの読み込みに失敗しました。お手数ですが以下のフォームから手動入力をお願い致します。',
                           color="danger",
                           style={'width': '50%'})
@@ -212,13 +224,28 @@ def update_output(contents, filename):
               State('department', 'value'),
               Input('upload-button', 'n_clicks'))
 def update_gcs_csv(rows, user_name, department, n_clicks):
+    """ 処理の流れ
+    1. 入力データのチェック結果を json として保存する (input_check_state)
+    2. 入力データのチェックが全て True だった場合のみ、
+       入力された資質データをデータフレーム化して GCS にアップロードする
+    ※ 入力データのチェック結果が False だった場合については、upload_result.py にて出力画面を制御している
+       （ユーザーがアップロードボタンを押した後、"/data/upload_result" に飛ぶ仕様）
+    """
+
     if n_clicks >= 1:
-        # 入力データをチェックする関数が全て True の場合のみ GCS へのアップロード処理が走る
+        # 1. 入力データのチェック結果を json として保存する
+        #  ∵入力データのチェック結果によって、「アップロード結果」ページの表示内容を条件分岐させたい（True なら「成功」、False なら「失敗」と表示したい）
+        #  TODO: dash は stateless らしいのでこの書き方にしているが、より良い方法あるか検討する
         input_check_state = {'user_name': is_not_input_empty(user_name),
                              'department': is_not_input_empty(department),
                              'strengths': is_correct_input_strengths(rows)
                              }
+        json_save_path = os.path.join(tmp_pdf_save_dir, 'input_check_state.json')
+        with open(json_save_path, 'w') as f:
+            json.dump(input_check_state, f, indent=4)
 
+        # 2. 入力データのチェックが全て True だった場合のみ、
+        #    入力された資質データをデータフレーム化して GCS にアップロードする
         if all(input_check_state.values()):
             # 資質のテーブルデータを読み込む
             pruned_rows = []
@@ -233,10 +260,3 @@ def update_gcs_csv(rows, user_name, department, n_clicks):
             # GCS に新しいデータをアップロード
             append_row_to_csv_strengths(user_name, df_strengths_new)
             append_row_to_csv_demogra(user_name, department)
-
-        # 入力データが正しいか否かの state を json に保存しておく
-        #  ∵「アップロード結果」のページで表示内容を条件分岐するため
-        #  TODO: dash は stateless らしいのでこの書き方にしているが、より良い方法あるか検討する
-        json_save_path = os.path.join(tmp_pdf_save_dir, 'input_check_state.json')
-        with open(json_save_path, 'w') as f:
-            json.dump(input_check_state, f, indent=4)
