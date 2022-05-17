@@ -50,7 +50,7 @@ def append_row_to_csv_strengths(user_name: str, df: pd.DataFrame) -> None:
     print('original csv file update done')
 
 
-def append_row_to_csv_demogra(user_name: str, department; str) -> None:
+def append_row_to_csv_demogra(user_name: str, department: str) -> None:
     # 既存の csv ファイルを GCS から読み込み、新しいデータを追加する
     df_org = pd.read_csv(demogra_path)
     sr_input = pd.Series([user_name, department], index=["name", "department"])
