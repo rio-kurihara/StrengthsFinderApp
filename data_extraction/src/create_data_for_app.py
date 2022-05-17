@@ -4,8 +4,8 @@ from logging import getLogger
 import pandas as pd
 import yaml
 
-# from GNN_and_GS import GAE
-from src.GNN_and_GS import GAE  # pytest 時のみこちらでインポートする
+from GNN_and_GS import GAE
+# from src.GNN_and_GS import GAE  # pytest 時のみこちらでインポートする
 
 logger = getLogger(__name__)
 
