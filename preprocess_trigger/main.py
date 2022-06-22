@@ -1,19 +1,27 @@
+import yaml
 from google.cloud import aiplatform
 
-def preprocess_trigger(data, context):
+
+def sf_app_preprocess_trigger(data, _):
+    # 設定ファイルの読み込み
+    with open('settings.yaml') as f:
+        config = yaml.load(f, Loader=yaml.SafeLoader)
+
     file_name = data['name']
     print('upload file name:', file_name)
-    
+
     # 同時に二つのファイル(strengths.csvとdemogra.csv)がアップロードされる仕様により、
     # ジョブが2回実行されてしまうのを防ぐため
 
     if file_name == 'original/strengths.csv':
         # settings
-        project = "mleg-283307"
-        display_name = "preprocess"
-        container_image_uri = "gcr.io/mleg-283307/torch18gpu_container_image:latest"
-        location = "asia-northeast1"
-        api_endpoint = "asia-northeast1-aiplatform.googleapis.com"
+        project = config['project_id']
+        display_name = config['display_name']
+        image_name = config['image_name']
+        image_tag = config['image_tag']
+        container_image_uri = "gcr.io/{0}/{1}:{2}".format(project, image_name, image_tag)
+        location = config['location']
+        api_endpoint = config['api_endpoint']
 
         # The AI Platform services require regional API endpoints.
         client_options = {"api_endpoint": api_endpoint}
@@ -43,6 +51,6 @@ def preprocess_trigger(data, context):
         parent = f"projects/{project}/locations/{location}"
         response = client.create_custom_job(parent=parent, custom_job=custom_job)
         print("preprocess triggered")
-    
+
     else:
         return

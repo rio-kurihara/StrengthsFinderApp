@@ -34,8 +34,10 @@ nav_menu = dbc.Nav(
                             external_link=True),
                 dbc.NavLink("Edit",
                             href="/data/edit",
-                            external_link=True,
-                            disabled=True),
+                            external_link=True),
+                dbc.NavLink("Delete",
+                            href="/data/delete",
+                            external_link=True)
             ],
             label="Data",
             nav=True

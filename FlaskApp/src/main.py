@@ -2,10 +2,9 @@ from dash import dcc, html
 from dash.dependencies import Input, Output
 
 from app import app
-from apps import (auth, custom_error, download, matching, overview, person, qa,
-                  team, top, upload, upload_result)
+from apps import (auth, custom_error, data_delete, download, data_edit, matching,
+                  overview, person, qa, team, top, upload, upload_result)
 from navigation_menu import nav_menu
-
 
 server = app.server
 
@@ -61,6 +60,10 @@ def display_page(pathname):
         return upload_result.layout
     elif pathname == '/data/download':
         return download.layout
+    elif pathname == '/data/edit':
+        return data_edit.layout
+    elif pathname == '/data/delete':
+        return data_delete.layout
     elif pathname == '/QA':
         return qa.layout
     else:
