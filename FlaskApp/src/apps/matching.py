@@ -129,7 +129,7 @@ def search_stable_matching(set_A, set_B):
 load_dotenv()
 
 # settings
-with open('src/settings.yaml') as f:
+with open('settings.yaml') as f:
     config = yaml.load(f, Loader=yaml.SafeLoader)
 
 # パスの設定

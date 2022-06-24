@@ -26,23 +26,30 @@
 ```bash
 # .env ファイルを修正したあとに実行する
 source .env
+# GAE 用のディレクトリに .env をコピーする
+cp .env FlaskApp/src/
 ```
 
 ### GCS バケットの作成
 
 ```bash
-gsutil mb gs://$BUCKET_NAME
-# サンプルデータを GCS にコピーする
-gsutil cp data_extraction/sample_data/original/* gs://$BUCKET_NAME/original/*
-gsutil cp data_extraction/sample_data/mst/* gs://$BUCKET_NAME/mst/*
+gsutil mb -l $REGION gs://$BUCKET_NAME
+# データを GCS に格納する
+gsutil cp sample_data/mst/* gs://$BUCKET_NAME/mst/
+gsutil cp <data>/<path>/original/* gs://$BUCKET_NAME/original/
 ```
 
 ### GAE のデプロイ
 
 ```bash
 gcloud auth login
+gcloud config set project $PROJECT_ID
 gcloud app create --region=$REGION
+```
 
+`FlaskApp/src/settings.yaml` を書き換えたあと、以下を実行。
+
+```bash
 cd FlaskApp/src
 gcloud app deploy
 ```
