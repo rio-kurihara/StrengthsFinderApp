@@ -1,16 +1,26 @@
+import os
+
 import dash_bootstrap_components as dbc
 import pandas as pd
 import yaml
 from app import app
 from dash import dash_table, dcc, html
 from dash.dependencies import Input, Output, State
+from dotenv import load_dotenv
+
+# .envから環境変数を読み込む
+load_dotenv()
 
 # settings
-with open('src/settings.yaml') as f:
+with open('settings.yaml') as f:
     config = yaml.load(f, Loader=yaml.SafeLoader)
-strengths_path = config['base_dir'] + config['strengths_path']
-department_path = config['base_dir'] + config['demogra_path']
-mst_category_path = config['base_dir'] + config['mst_category_path']
+
+# パスの設定
+bucket_name = os.getenv('BUCKET_NAME')
+bucket_path = 'gs://{}/'.format(bucket_name)
+strengths_path = bucket_path + config['strengths_path']
+department_path = bucket_path + config['demogra_path']
+mst_category_path = bucket_path + config['mst_category_path']
 
 # load data
 df_strengths = pd.read_csv(strengths_path, index_col='rank')
@@ -32,37 +42,41 @@ header_contents = html.Div(
 considerations_contents = dbc.Alert(
     [
         html.P("・誤って他の人のデータを編集しないようにお気を付けください。"),
-    ], color='warning'
-)
-
-# ユーザー名入力用フォーム
-user_name_input_form = dbc.FormGroup(
-    [
-        dbc.Label("データを編集したい方の氏名", className="mr-2"),
-        dcc.Dropdown(id='user-name',
-                     options=[{'label': i, 'value': i}
-                              for i in list_users],
-                     multi=False),
     ],
-    className="mr-3",
+    color='warning',
+    style={'width': '50%'}
 )
 
-
-# 所属部署入力用フォーム
-department_input_form = dbc.FormGroup(
+user_and_department_form = dbc.Row(
     [
-        dbc.Label("変更後の部署名", className="mr-2"),
-        dcc.Dropdown(id='department-name',
-                     placeholder="変更しない場合は入力不要です。",
-                     options=[{'label': i, 'value': i}
-                              for i in list_departments],
-                     multi=False),
+        dbc.Col(
+            [
+                dbc.Label("データを編集したい方の氏名"),
+                dcc.Dropdown(id='user-name',
+                             options=[{'label': i, 'value': i}
+                                      for i in list_users],
+                             multi=False),
+            ],
+            width=3,
+        ),
+        dbc.Col(
+            [
+                dbc.Label("変更後の部署名"),
+                dcc.Dropdown(id='department-name',
+                             placeholder="変更しない場合は入力不要です。",
+                             options=[{'label': i, 'value': i}
+                                      for i in list_departments],
+                             multi=False),
+            ],
+            width=3,
+        ),
     ],
-    className="mr-3",
+    className="g-3",
 )
+
 
 # 資質情報の変更用フォーム
-strenths_input_form = html.Div(
+strengths_input_form = html.Div(
     [
         html.P('変更したいセルをクリックして変更してください。'),
         dash_table.DataTable(
@@ -76,10 +90,7 @@ strenths_input_form = html.Div(
 edit_button = dbc.Button("変更",
                          id='edit-button',
                          color="danger",
-                         outline=True,
-                         n_clicks=0,
-                         #    external_link=True,
-                         #    href="/data/delete_done"
+                         n_clicks=0
                          )
 
 
@@ -87,9 +98,8 @@ layout = html.Div(
     [
         header_contents,
         considerations_contents,
-        user_name_input_form,
-        department_input_form,
-        strenths_input_form,
+        user_and_department_form,
+        strengths_input_form,
         html.P(),
         edit_button,
         html.P(),

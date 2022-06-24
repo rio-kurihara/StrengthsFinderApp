@@ -44,7 +44,12 @@ df_sample_strengths = pd.DataFrame(
 sample_department_card = dbc.CardBody(
     [
         dbc.Table.from_dataframe(df_sample_department, bordered=True, hover=True),
-        dbc.Button("Download", color="success", className="mt-auto", id="mst_download_btn")
+        dbc.Button(
+            "Download",
+            id="mst_download_btn",
+            color="success",
+            className="mt-auto",
+        )
     ],
 )
 
