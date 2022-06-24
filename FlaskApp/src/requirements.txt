@@ -1,8 +1,7 @@
-dash==2.0.0
+dash==2.5.1
 dash-core-components==2.0.0
-dash-html-components==2.0.0
 dash_renderer==1.9.1
-dash_bootstrap_components==0.13.0
+dash_bootstrap_components==1.1.0
 dash_extensions==0.0.60
 Flask==2.0.1
 Markdown==3.0.1

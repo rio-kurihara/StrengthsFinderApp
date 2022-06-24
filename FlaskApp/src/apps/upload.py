@@ -8,6 +8,7 @@ import yaml
 from app import app
 from dash import dash_table, dcc, html
 from dash.dependencies import Input, Output, State
+from dotenv import load_dotenv
 from google.cloud import storage
 
 from apps.pdf_loader import (check_parsed_txt, convert_parsed_txt,
@@ -16,25 +17,29 @@ from apps.pdf_loader import (check_parsed_txt, convert_parsed_txt,
                              is_pdf, pdf_to_txt, save_pdf_to_gcs,
                              save_pdf_to_local)
 
+# .envから環境変数を読み込む
+load_dotenv()
+
 # settings.yaml の読み込み
-with open('src/settings.yaml') as f:
+with open('settings.yaml') as f:
     config = yaml.load(f, Loader=yaml.SafeLoader)
 
-
 # パスを設定
+bucket_name = os.getenv('BUCKET_NAME')
+bucket_path = 'gs://{}/'.format(bucket_name)
 tmp_pdf_save_dir = config['tmp_pdf_save_dir']
-base_dir = config['base_dir']
-strengths_path = base_dir + config['strengths_path']
-demogra_path = base_dir + config['demogra_path']
+strengths_path = bucket_path + config['strengths_path']
+demogra_path = bucket_path + config['demogra_path']
 # バックアップ用の csv は "ファイル名_bkup_日付.csv"
 today = str(datetime.date.today())
 strengths_bkup_path = strengths_path.replace('strengths.csv',
                                              'strengths_bkup_{}.csv'.format(today))
 demogra_bkup_path = demogra_path.replace('demogra.csv',
                                          'demogra_bkup_{}.csv'.format(today))
+# 所属部署のリスト
+list_departments = config['departments']
 
 # GCS の設定
-bucket_name = config['bucket_name']
 client = storage.Client()
 bucket = client.get_bucket(bucket_name)
 
@@ -69,23 +74,35 @@ header_contents = html.Div(
     ]
 )
 
-user_name_input_form = dbc.FormGroup(
+user_and_department_form = dbc.Row(
     [
-        dbc.Label("氏名", className="mr-2"),
-        dcc.Input(id='user-name', type='text', value=' '),
+        dbc.Col(
+            [
+                dbc.Label("氏名"),
+                dbc.Input(
+                    type="text",
+                    id="user-name"
+                ),
+            ],
+            width=3,
+        ),
+        dbc.Col(
+            [
+                dbc.Label("所属"),
+                dcc.Dropdown(
+                    id="department",
+                    options=[
+                        {'label': i, 'value': i} for i in list_departments
+                    ],
+                ),
+            ],
+            width=3,
+        ),
     ],
-    className="mr-3",
+    className="g-3",
 )
 
-department_input_form = dbc.FormGroup(
-    [
-        dbc.Label("所属", className="mr-2"),
-        dcc.Input(id='department', type='text', value=' '),
-    ],
-    className="mr-3",
-)
-
-upload_pdf_form = dbc.FormGroup(
+upload_pdf_form = html.Div(
     [
         html.P('ストレングスファインダーのHPからダウンロードしたPDFをアップロードしてください'),
         html.P('※日本語データのみ対応'),
@@ -114,11 +131,11 @@ upload_pdf_form = dbc.FormGroup(
 
 upload_form = dbc.Form(
     [
-        user_name_input_form,
-        department_input_form,
+        user_and_department_form,
+        html.P(),
         upload_pdf_form
-    ],
-    inline=False,
+    ]
+    # ,inline=False,
 )
 
 data_table = dash_table.DataTable(

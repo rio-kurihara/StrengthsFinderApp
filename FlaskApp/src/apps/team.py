@@ -1,7 +1,4 @@
-from itertools import groupby
-import json
 import os
-import sys
 from decimal import ROUND_HALF_UP, Decimal
 
 import dash_bootstrap_components as dbc
@@ -10,25 +7,30 @@ import pandas as pd
 import plotly
 import plotly.graph_objs as go
 import yaml
+from app import app
 from dash import dcc, html
 from dash.dependencies import Input, Output
+from dotenv import load_dotenv
 
-from app import app
 # from src.app import app  # pytest のときのみこっち
 
 
+# .envから環境変数を読み込む
+load_dotenv()
+
 # settings.yaml の読み込み
-with open('src/settings.yaml') as f:
+with open('settings.yaml') as f:
     config = yaml.load(f, Loader=yaml.SafeLoader)
 
 # パスを設定
-base_dir = config['base_dir']
-mst_category_path = base_dir + config['mst_category_path']
-mst_message_json_path = base_dir + config['mst_message_json_path']
-strengths_path = base_dir + config['strengths_path']
-top5_path = base_dir + config['top5_path']
-all34_path = base_dir + config['all34_path']
-all34_exsits_null_path = base_dir + config['all34_exsits_null_path']
+bucket_name = os.getenv('BUCKET_NAME')
+bucket_path = 'gs://{}/'.format(bucket_name)
+mst_category_path = bucket_path + config['mst_category_path']
+mst_message_json_path = bucket_path + config['mst_message_json_path']
+strengths_path = bucket_path + config['strengths_path']
+top5_path = bucket_path + config['top5_path']
+all34_path = bucket_path + config['all34_path']
+all34_exsits_null_path = bucket_path + config['all34_exsits_null_path']
 
 # GCS のバケットからファイルを読み込む
 df_mst = pd.read_csv(mst_category_path)

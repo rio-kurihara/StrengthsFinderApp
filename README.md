@@ -21,40 +21,35 @@
  
 ## Deployment
 
-### 設定
+### 環境変数の読み込み
+
 ```bash
-export PROJECT_ID=<your_pjoject_id>
-export BUCKET_NAME=<bucket_name>
-
-# 以下は必要であれば変更する
-
-export REGION=asia-northeast1
-export IMAGE_REPO_NAME=torch18gpu_container_image
-export IMAGE_TAG=latest
-export IMAGE_URI=gcr.io/$PROJECT_ID/$IMAGE_REPO_NAME:$IMAGE_TAG
+# .env ファイルを修正したあとに実行する
+source .env
+# GAE 用のディレクトリに .env をコピーする
+cp .env FlaskApp/src/
 ```
 
 ### GCS バケットの作成
 
 ```bash
-gsutil mb gs://$BUCKET_NAME
-# サンプルデータを GCS にコピーする
-gsutil cp data_extraction/sample_data/original/* gs://$BUCKET_NAME/original/*
-gsutil cp data_extraction/sample_data/mst/* gs://$BUCKET_NAME/mst/*
+gsutil mb -l $REGION gs://$BUCKET_NAME
+# データを GCS に格納する
+gsutil cp sample_data/mst/* gs://$BUCKET_NAME/mst/
+gsutil cp <data>/<path>/original/* gs://$BUCKET_NAME/original/
 ```
-
-作成したら、以下の config ファイル内の <BUCKET_NAME> を変更する。  
-- [data_extraction/src/settings.yaml](data_extraction/src/settings.yaml)
-- [data_extraction/src/GNN_and_GS/config.yaml](data_extraction/src/GNN_and_GS/config.yaml)
-- [FlaskApp/src/settings.yaml](FlaskApp/src/settings.yaml)
-
 
 ### GAE のデプロイ
 
 ```bash
 gcloud auth login
+gcloud config set project $PROJECT_ID
 gcloud app create --region=$REGION
+```
 
+`FlaskApp/src/settings.yaml` を書き換えたあと、以下を実行。
+
+```bash
 cd FlaskApp/src
 gcloud app deploy
 ```

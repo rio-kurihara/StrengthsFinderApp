@@ -1,3 +1,5 @@
+import os
+from dotenv import load_dotenv
 import random
 
 import dash_bootstrap_components as dbc
@@ -123,11 +125,18 @@ def search_stable_matching(set_A, set_B):
     return female_keep_set
 
 
+# .envから環境変数を読み込む
+load_dotenv()
+
 # settings
-with open('src/settings.yaml') as f:
+with open('settings.yaml') as f:
     config = yaml.load(f, Loader=yaml.SafeLoader)
-strengths_path = config['base_dir'] + config['strengths_path']
-top5_path = config['base_dir'] + config['top5_path']
+
+# パスの設定
+bucket_name = os.getenv('BUCKET_NAME')
+bucket_path = 'gs://{}/'.format(bucket_name)
+strengths_path = bucket_path + config['strengths_path']
+top5_path = bucket_path + config['top5_path']
 
 # load data
 df_top5 = pd.read_csv(top5_path, index_col='user_name')
