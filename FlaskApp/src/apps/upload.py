@@ -8,6 +8,7 @@ import yaml
 from app import app
 from dash import dash_table, dcc, html
 from dash.dependencies import Input, Output, State
+from dotenv import load_dotenv
 from google.cloud import storage
 
 from apps.pdf_loader import (check_parsed_txt, convert_parsed_txt,
@@ -16,16 +17,19 @@ from apps.pdf_loader import (check_parsed_txt, convert_parsed_txt,
                              is_pdf, pdf_to_txt, save_pdf_to_gcs,
                              save_pdf_to_local)
 
+# .envから環境変数を読み込む
+load_dotenv()
+
 # settings.yaml の読み込み
 with open('src/settings.yaml') as f:
     config = yaml.load(f, Loader=yaml.SafeLoader)
 
-
 # パスを設定
+bucket_name = os.getenv('BUCKET_NAME')
+bucket_path = 'gs://{}/'.format(bucket_name)
 tmp_pdf_save_dir = config['tmp_pdf_save_dir']
-base_dir = config['base_dir']
-strengths_path = base_dir + config['strengths_path']
-demogra_path = base_dir + config['demogra_path']
+strengths_path = bucket_path + config['strengths_path']
+demogra_path = bucket_path + config['demogra_path']
 # バックアップ用の csv は "ファイル名_bkup_日付.csv"
 today = str(datetime.date.today())
 strengths_bkup_path = strengths_path.replace('strengths.csv',
@@ -34,7 +38,6 @@ demogra_bkup_path = demogra_path.replace('demogra.csv',
                                          'demogra_bkup_{}.csv'.format(today))
 
 # GCS の設定
-bucket_name = config['bucket_name']
 client = storage.Client()
 bucket = client.get_bucket(bucket_name)
 

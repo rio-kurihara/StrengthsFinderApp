@@ -1,3 +1,4 @@
+import os
 from typing import Union
 
 import dash_bootstrap_components as dbc
@@ -8,12 +9,19 @@ from dash import html
 from dash.dependencies import Input, Output
 from dash_extensions import Download
 from dash_extensions.snippets import send_data_frame
+from dotenv import load_dotenv
 
-# settings
+# .envから環境変数を読み込む
+load_dotenv()
+
+# settings.yaml の読み込み
 with open('src/settings.yaml') as f:
     config = yaml.load(f, Loader=yaml.SafeLoader)
-strengths_path = config['base_dir'] + config['strengths_path']
-department_path = config['base_dir'] + config['demogra_path']
+
+bucket_name = os.getenv('BUCKET_NAME')
+bucket_path = 'gs://{}/'.format(bucket_name)
+strengths_path = bucket_path + config['strengths_path']
+department_path = bucket_path + config['demogra_path']
 
 # 表示用にサンプルデータを作成（データフレーム）
 df_sample_department = pd.DataFrame(

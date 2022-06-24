@@ -1,6 +1,7 @@
+import os
 import pickle
 from decimal import ROUND_HALF_UP, Decimal
-
+from dotenv import load_dotenv
 import numpy as np
 import pandas as pd
 import plotly.graph_objs as go
@@ -64,11 +65,15 @@ def create_correlation_table(df_corr_all34, target_user):
     return data
 
 
+# .envから環境変数を読み込む
+load_dotenv()
+
 # settings.yaml の読み込み
 with open('src/settings.yaml') as f:
     config = yaml.load(f, Loader=yaml.SafeLoader)
 # パスを設定
-all34_corr_path = config['base_dir'] + config['all34_corr_path']
+bucket_name = os.getenv('BUCKET_NAME')
+all34_corr_path = 'gs://{}/'.format(bucket_name) + config['all34_corr_path']
 
 # GCS のバケットからファイルを読み込む
 df_corr_all34 = pd.read_csv(all34_corr_path, index_col='user_name')

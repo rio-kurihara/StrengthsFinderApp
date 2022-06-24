@@ -1,21 +1,26 @@
 import copy
-import pickle
+import os
 
 import pandas as pd
 import plotly.graph_objs as go
 import yaml
 from dash import dcc, html
+from dotenv import load_dotenv
 from google.cloud import storage
 
+# .envから環境変数を読み込む
+load_dotenv()
 
 # settings.yaml の読み込み
 with open('src/settings.yaml') as f:
     config = yaml.load(f, Loader=yaml.SafeLoader)
+
 # パスを設定
-top5_path = config['base_dir'] + config['top5_path']
-all34_path = config['base_dir'] + config['all34_path']
-colors_strengths_path = config['base_dir'] + config['colors_strengths_path']
-bucket_name = config['bucket_name']
+bucket_name = os.getenv('BUCKET_NAME')
+bucket_path = 'gs://{}/'.format(bucket_name)
+top5_path = bucket_path + config['top5_path']
+all34_path = bucket_path + config['all34_path']
+colors_strengths_path = bucket_path + config['colors_strengths_path']
 
 # 集計対象の部署名を設定
 departments = config['departments']

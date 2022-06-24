@@ -1,24 +1,29 @@
-import pickle
+import os
 
 import numpy as np
 import pandas as pd
 import plotly.graph_objs as go
 import yaml
+from app import app
 from dash import dcc, html
 from dash.dependencies import Input, Output
+from dotenv import load_dotenv
 
-from app import app
 # from src.app import app  # pytest のときのみこっち
+
+# .envから環境変数を読み込む
+load_dotenv()
 
 # settings.yaml の読み込み
 with open('src/settings.yaml') as f:
     config = yaml.load(f, Loader=yaml.SafeLoader)
 
 # パスを設定
-base_dir = config['base_dir']
-all34_exsits_null_path = base_dir + config['all34_exsits_null_path']
-colors_strengths_path = base_dir + config['colors_strengths_path']
-strengths_desc_path = base_dir + config['strengths_desc_path']
+bucket_name = os.getenv('BUCKET_NAME')
+bucket_path = 'gs://{}/'.format(bucket_name)
+all34_exsits_null_path = bucket_path + config['all34_exsits_null_path']
+colors_strengths_path = bucket_path + config['colors_strengths_path']
+strengths_desc_path = bucket_path + config['strengths_desc_path']
 
 # GCS のバケットからファイルを読み込む
 df_all = pd.read_csv(all34_exsits_null_path, index_col='user_name')
