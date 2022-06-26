@@ -5,8 +5,6 @@ from dash import html
 with open('settings.yaml') as f:
     config = yaml.load(f, Loader=yaml.SafeLoader)
 
-contact_address = config['contact']
-
 algorithm_contents = html.Div(
     [
         html.H5('各機能のアルゴリズム詳細',
@@ -15,18 +13,27 @@ algorithm_contents = html.Div(
     ]
 )
 
+google_form_url = config = ['contact_form']
+contact_form = html.Iframe(src=google_form_url,
+                           style={
+                               "height": "700px",
+                               "width": "700px"
+                           }
+                           )
+
 contact_contents = html.Div(
     [
-        html.H5('問い合わせ先',
+        html.H5('お問い合わせ',
                 style=dict(padding="10px", borderLeft="5px #b31b1b solid")),
-        html.P(contact_address)
+        contact_form
     ]
 )
+
 
 layout = html.Div(
     [
         algorithm_contents,
         html.P('作成中'),
-        contact_contents,
+        contact_contents
     ]
 )

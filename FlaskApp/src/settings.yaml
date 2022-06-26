@@ -1,17 +1,11 @@
-# Change your bucket name
-bucket_name: <BUCKET_NAME>
-base_dir: gs://<BUCKET_NAME>/
-
 # Change your team name
 departments: ["AN", "BZ", "CO", "DE", "DS", "HR", "MK", "MP", "retiree"]
 
 # Change contact
-contact: "********@***.co.jp"
+contact_form: "https://docs.google.com/forms/hoge/fuga/embedded=true"
 
 strengths_path: original/strengths.csv
-strengths_bkup_path: original/strengths_bkup.csv
 demogra_path: original/demogra.csv
-demogra_bkup_path: original/demogra_bkup.csv
 
 top5_path: preprocessed/top5.csv
 all34_path: preprocessed/all34.csv
@@ -27,5 +21,5 @@ strengths_desc_path: mst/dict_strengths_desc.pkl
 tmp_pdf_save_dir: data/tmp_upload/
 
 # アクセス可能な IP アドレスを制限する　※制限しない場合は空のリストにする
-accepted_ip: ['xxx.xx.xx.xx']
+accepted_ip: []
 port: 8080
