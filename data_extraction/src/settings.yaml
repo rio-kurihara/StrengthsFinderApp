@@ -2,7 +2,7 @@
 base_dir: gs://<BUCKET_NAME>/
 
 strengths_path: original/strengths.csv
-demogra_path: original/demogra.csv
+demogra_path: original/department.csv
 
 top5_path: preprocessed/top5.csv
 all34_path: preprocessed/all34.csv

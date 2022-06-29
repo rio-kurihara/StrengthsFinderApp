@@ -2,7 +2,7 @@ from dash import dcc, html
 from dash.dependencies import Input, Output
 
 from app import app
-from apps import (auth, custom_error, data_delete, download, data_edit, matching,
+from apps import (custom_error, data_delete, download, data_edit, matching,
                   overview, person, qa, team, top, upload, upload_result)
 from navigation_menu import nav_menu
 
@@ -40,7 +40,6 @@ route_layout = html.Div(
 
 @app.callback(Output('page-content', 'children'),
               Input('url', 'pathname'))
-@auth.check_ip
 def display_page(pathname):
     if pathname == '/':
         return route_layout

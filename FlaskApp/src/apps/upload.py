@@ -13,9 +13,9 @@ from google.cloud import storage
 
 from apps.pdf_loader import (check_parsed_txt, convert_parsed_txt,
                              create_fname_for_save_pdf,
-                             is_correct_input_strengths, is_not_input_empty,
-                             is_pdf, pdf_to_txt, save_pdf_to_gcs,
-                             save_pdf_to_local)
+                             is_correct_input_strengths, is_exists_user,
+                             is_not_input_empty, is_pdf, pdf_to_txt,
+                             save_pdf_to_gcs, save_pdf_to_local)
 
 # .envから環境変数を読み込む
 load_dotenv()
@@ -34,14 +34,17 @@ demogra_path = bucket_path + config['demogra_path']
 today = str(datetime.date.today())
 strengths_bkup_path = strengths_path.replace('strengths.csv',
                                              'strengths_bkup_{}.csv'.format(today))
-demogra_bkup_path = demogra_path.replace('demogra.csv',
-                                         'demogra_bkup_{}.csv'.format(today))
+demogra_bkup_path = demogra_path.replace('department.csv',
+                                         'department_bkup_{}.csv'.format(today))
 # 所属部署のリスト
 list_departments = config['departments']
 
 # GCS の設定
 client = storage.Client()
 bucket = client.get_bucket(bucket_name)
+
+# データの読み込み
+df_department = pd.read_csv(demogra_path)
 
 
 def append_row_to_csv_strengths(user_name: str, df: pd.DataFrame) -> None:
@@ -255,7 +258,8 @@ def update_gcs_csv(rows, user_name, department, n_clicks):
         #  TODO: dash は stateless らしいのでこの書き方にしているが、より良い方法あるか検討する
         input_check_state = {'user_name': is_not_input_empty(user_name),
                              'department': is_not_input_empty(department),
-                             'strengths': is_correct_input_strengths(rows)
+                             'strengths': is_correct_input_strengths(rows),
+                             'exists_user': is_exists_user(df_department, user_name)
                              }
         json_save_path = os.path.join(tmp_pdf_save_dir, 'input_check_state.json')
         with open(json_save_path, 'w') as f:

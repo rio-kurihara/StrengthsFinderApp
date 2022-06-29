@@ -13,7 +13,7 @@ algorithm_contents = html.Div(
     ]
 )
 
-google_form_url = config = ['contact_form']
+google_form_url = config['contact_form']
 contact_form = html.Iframe(src=google_form_url,
                            style={
                                "height": "700px",

@@ -24,7 +24,6 @@ colors_strengths_path = bucket_path + config['colors_strengths_path']
 
 # 集計対象の部署名を設定
 departments = config['departments']
-departments.remove("retiree")
 
 # GCS のバケットからファイルを読み込む
 df_top5 = pd.read_csv(top5_path, index_col='user_name')
@@ -186,7 +185,6 @@ layout = [
 
 # 各部署の資質ごとの順位合計を計算
 rank_sum_each_departments = df_top5.groupby(['department', 'strengths'])['score'].sum()
-
 
 # 部署別の資質ランキングのグラフを作成
 for i, department in enumerate(departments):

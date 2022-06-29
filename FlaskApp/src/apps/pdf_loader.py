@@ -1,3 +1,4 @@
+import yaml
 import os
 import base64
 import datetime
@@ -172,6 +173,15 @@ def is_pdf(filename: str) -> bool:
 def is_not_input_empty(input_value: str) -> bool:
     # 入力データが空でなればTrue、空ならFalseを返す関数
     if input_value != ' ':
+        return True
+    else:
+        return False
+
+
+def is_exists_user(df_department: pd.DataFrame, input_value: str) -> bool:
+    # すでに存在するユーザー名であればFalseを返す関数
+    user_names = list(df_department['name'])
+    if not input_value is user_names:
         return True
     else:
         return False

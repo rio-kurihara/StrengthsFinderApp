@@ -1,11 +1,10 @@
-from email import message
 import json
 import os
 
 import yaml
 from app import app
 from dash import dcc, html
-from dash.dependencies import Input, Output, State
+from dash.dependencies import Input, Output
 
 
 # settings.yaml の読み込み
@@ -65,6 +64,16 @@ contents_strengths_is_incorrect = html.Div(
     ]
 )
 
+
+contents_user_name_is_exists = html.Div(
+    [
+        html.H5('アップロードに失敗しました',
+                style=dict(padding="10px", borderLeft="5px #b31b1b solid")),
+        html.P('すでに存在するユーザー名です'),
+        dcc.Store(id='intermediate-value')
+    ]
+)
+
 contents_ng = html.Div(
     [
         html.H5('アップロードに失敗しました',
@@ -91,6 +100,8 @@ def update_result_message(_):
             return contents_department_is_empty
         elif input_state['strengths'] == False:
             return contents_strengths_is_incorrect
+        elif input_state['exists_user'] == False:
+            return contents_user_name_is_exists
         else:  # 全ての state が True だった場合
             return contents_ok
     except:
