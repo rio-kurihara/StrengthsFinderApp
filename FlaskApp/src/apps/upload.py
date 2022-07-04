@@ -33,9 +33,9 @@ demogra_path = bucket_path + config['demogra_path']
 # バックアップ用の csv は "ファイル名_bkup_日付.csv"
 today = str(datetime.date.today())
 strengths_bkup_path = strengths_path.replace('strengths.csv',
-                                             'strengths_bkup_{}.csv'.format(today))
+                                             'bkup/strengths_bkup_{}.csv'.format(today))
 demogra_bkup_path = demogra_path.replace('department.csv',
-                                         'department_bkup_{}.csv'.format(today))
+                                         'bkup/department_bkup_{}.csv'.format(today))
 # 所属部署のリスト
 list_departments = config['departments']
 
