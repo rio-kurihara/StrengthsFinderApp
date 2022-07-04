@@ -172,7 +172,7 @@ def is_pdf(filename: str) -> bool:
 
 def is_not_input_empty(input_value: str) -> bool:
     # 入力データが空でなればTrue、空ならFalseを返す関数
-    if input_value != ' ':
+    if input_value != None:
         return True
     else:
         return False
@@ -181,7 +181,7 @@ def is_not_input_empty(input_value: str) -> bool:
 def is_exists_user(df_department: pd.DataFrame, input_value: str) -> bool:
     # すでに存在するユーザー名であればFalseを返す関数
     user_names = list(df_department['name'])
-    if not input_value is user_names:
+    if not input_value in user_names:
         return True
     else:
         return False
@@ -195,7 +195,9 @@ def is_correct_input_strengths(input_rows: list) -> bool:
     Args:
         input_rows (list): dash_table.DataTable() から入力されたデータ
     """
-    # 空のデータが含まれないか確認
-    flag = [True if dict_row['strengths'] != '' else False for dict_row in input_rows]
-
-    return all(flag)
+    if input_rows == [{}]:  # データが入力されなかった場合 False を返す
+        return False
+    else:
+        # 空のデータが含まれないか確認
+        flag = [True if dict_row['strengths'] != '' else False for dict_row in input_rows]
+        return all(flag)
