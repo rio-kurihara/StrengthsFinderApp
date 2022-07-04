@@ -202,12 +202,13 @@ layout = html.Div(
               [Input('group_usersA', 'value'),
                Input('group_usersB', 'value')])
 def check_matching_input(list_userA, list_userB):
-    if len(set(list_userA) & set(list_userB)) != 0:
-        return 'メンティー集合とメンター集合に重複があります'
-    elif len(set(list_userA)) > len(set(list_userB)):
-        return 'メンティー集合の要素をメンター集合の要素と同等以下になるように減らしてください'
-    else:
-        return True
+    if list_userA != None and list_userB != None:
+        if len(set(list_userA) & set(list_userB)) != 0:
+            return 'メンティー集合とメンター集合に重複があります'
+        elif len(set(list_userA)) > len(set(list_userB)):
+            return 'メンティー集合の要素をメンター集合の要素と同等以下になるように減らしてください'
+        else:
+            return True
 
 
 @app.callback(Output('matching_result', 'figure'),
@@ -221,11 +222,11 @@ def update_matching(check_result, list_userA, list_userB):
     except:
         pass
 
-    if check_result == False:
+    if check_result != True:
         return {'data': None, 'layout': None}
     else:
         num_dict = make_dict(df_strength)
-        res_cos_path = config['base_dir'] + config['res_cos_name_path']
+        res_cos_path = bucket_path + config['res_cos_name_path']
         res_mat = np.array(pd.read_csv(res_cos_path))
         set_A, set_B = prefer_order(
             list_userA, list_userB, num_dict, res_mat)

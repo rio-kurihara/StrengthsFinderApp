@@ -106,29 +106,31 @@ layout = html.Div(
 
 @app.callback(Output('correlation-table', 'figure'), [Input('user-name', 'value')])
 def update_graph(target_user):
+    if target_user == None:
+        return {'data': None, 'layout': None}
+    else:
+        data = create_correlation_table(df_corr_all34, target_user)
 
-    data = create_correlation_table(df_corr_all34, target_user)
-
-    layout = go.Layout(
-        font=dict(size=16),
-        hovermode='closest',
-        height=2000,
-        width=1000,
-        barmode='stack',
-        showlegend=False,
-        xaxis=dict(
-            title="Strengths",
-            side='top',
-            tickangle=90
-        ),
-        yaxis=dict(
-            autorange='reversed',
-            showgrid=False,
-            zeroline=False,
-            showline=False,
-            ticks='',
-            dtick=1,
+        layout = go.Layout(
+            font=dict(size=16),
+            hovermode='closest',
+            height=2000,
+            width=1000,
+            barmode='stack',
+            showlegend=False,
+            xaxis=dict(
+                title="Strengths",
+                side='top',
+                tickangle=90
+            ),
+            yaxis=dict(
+                autorange='reversed',
+                showgrid=False,
+                zeroline=False,
+                showline=False,
+                ticks='',
+                dtick=1,
+            )
         )
-    )
 
-    return {'data': data, 'layout': layout}
+        return {'data': data, 'layout': layout}

@@ -115,11 +115,11 @@ layout = html.Div(
               [Input('user-name', 'value')]
               )
 def update_display_data(user_name):
-    if user_name != None:
+    if user_name == None:
+        return None, None
+    else:
         # 入力されたユーザーのデータを抽出
         df = df_strengths[user_name]
-        # print(df.head())
-        # data = [{'rank': i, 'strengths': ''} for i in range(1, 35)]
         data = [{'rank': i, 'strengths': strengths_name}
                 for i, strengths_name in enumerate(list(df), 1)]
         # 列名の定義

@@ -111,84 +111,87 @@ def create_graph_objs(
 
 @app.callback(Output('team_feature', 'figure'), [Input('team_users', 'value')])
 def update_graph(list_users):
-    dict_rank_to_score = {1: 5, 2: 4, 3: 3, 4: 2, 5: 1}
+    if list_users == None or len(list_users) == 1:
+        return {'data': None, 'layout': None}
+    else:
+        dict_rank_to_score = {1: 5, 2: 4, 3: 3, 4: 2, 5: 1}
 
-    df_top5['category'] = df_top5[['strengths']
-                                  ].applymap(dict_strengths_category.get)
-    df_top5['score'] = df_top5[['rank']].applymap(dict_rank_to_score.get)
+        df_top5['category'] = df_top5[['strengths']
+                                      ].applymap(dict_strengths_category.get)
+        df_top5['score'] = df_top5[['rank']].applymap(dict_rank_to_score.get)
 
-    data = []
+        data = []
 
-    team_scores_by_category = {}
+        team_scores_by_category = {}
 
-    for _categry in list_category:
-        team_scores_by_category[_categry] = 0
+        for _categry in list_category:
+            team_scores_by_category[_categry] = 0
 
-    for _user in list_users:
-        # 1ユーザーのカテゴリごとの資質順位合計を計算
-        user_scores_by_category = sum_rank_each_strengths_category(df_top5, _user)
-        # user_scores_by_category = dict(sorted(user_scores_by_category.items()))
+        for _user in list_users:
+            # 1ユーザーのカテゴリごとの資質順位合計を計算
+            user_scores_by_category = sum_rank_each_strengths_category(df_top5, _user)
+            # user_scores_by_category = dict(sorted(user_scores_by_category.items()))
 
-        for _categry, _score in user_scores_by_category.items():
-            team_scores_by_category[_categry] += _score
+            for _categry, _score in user_scores_by_category.items():
+                team_scores_by_category[_categry] += _score
 
-        # グラフオブジェクトの作成
-        trace = create_graph_objs(list_category, user_scores_by_category, _user)
-        data.append(trace)
+            # グラフオブジェクトの作成
+            trace = create_graph_objs(list_category, user_scores_by_category, _user)
+            data.append(trace)
 
-    # チーム全体のカテゴリごとの資質順位合計を取得
-    team_scores_by_category = dict(sorted(team_scores_by_category.items()))
-    team_scores = list(team_scores_by_category.values())
-    categorys = list(team_scores_by_category.keys())
+        # チーム全体のカテゴリごとの資質順位合計を取得
+        team_scores_by_category = dict(sorted(team_scores_by_category.items()))
+        team_scores = list(team_scores_by_category.values())
+        categorys = list(team_scores_by_category.keys())
 
-    trace0 = go.Scatterpolar(
-        r=team_scores,
-        theta=categorys,
-        fill='toself',
-        fillcolor='gray',
-        name='合計',
-        opacity=0.7,
-        marker=dict(symbol="square", size=8),
-        line=dict(color='black'),
-        subplot='polar2'
-    )
-
-    data.append(trace0)
-
-    ann1 = dict(
-        font=dict(size=14),
-        showarrow=False,
-        text='合計スコア',
-        # Specify text position (place text in a hole of pie)
-        x=0.16,
-        y=1.18
-    )
-    ann2 = dict(
-        font=dict(size=14),
-        showarrow=False,
-        text='各人のスコア',
-        x=0.85,
-        y=1.18
-    )
-
-    layout = go.Layout(
-        annotations=[ann1, ann2],
-        showlegend=True,
-        polar2=dict(
-            domain=dict(x=[0, 0.4],
-                        y=[0, 1]
-                        ),
-            radialaxis=dict(tickfont=dict(size=8)),
-        ),
-        polar=dict(
-            domain=dict(x=[0.6, 1],
-                        y=[0, 1]
-                        ),
-            radialaxis=dict(tickfont=dict(size=8)),
+        trace0 = go.Scatterpolar(
+            r=team_scores,
+            theta=categorys,
+            fill='toself',
+            fillcolor='gray',
+            name='合計',
+            opacity=0.7,
+            marker=dict(symbol="square", size=8),
+            line=dict(color='black'),
+            subplot='polar2'
         )
-    )
 
-    return {'data': data, 'layout': layout}
+        data.append(trace0)
+
+        ann1 = dict(
+            font=dict(size=14),
+            showarrow=False,
+            text='合計スコア',
+            # Specify text position (place text in a hole of pie)
+            x=0.16,
+            y=1.18
+        )
+        ann2 = dict(
+            font=dict(size=14),
+            showarrow=False,
+            text='各人のスコア',
+            x=0.85,
+            y=1.18
+        )
+
+        layout = go.Layout(
+            annotations=[ann1, ann2],
+            showlegend=True,
+            polar2=dict(
+                domain=dict(x=[0, 0.4],
+                            y=[0, 1]
+                            ),
+                radialaxis=dict(tickfont=dict(size=8)),
+            ),
+            polar=dict(
+                domain=dict(x=[0.6, 1],
+                            y=[0, 1]
+                            ),
+                radialaxis=dict(tickfont=dict(size=8)),
+            )
+        )
+
+        return {'data': data, 'layout': layout}
 
 
 # ------------------------------------------------------------------------------
@@ -324,7 +327,7 @@ def lack_strengths_in_team(
 @app.callback(Output('lack_strengths_1', 'children'),
               [Input('team_users', 'value')])
 def update_lack_strength_1(list_users):
-    if len(list_users) <= 1:
+    if list_users == None or len(list_users) == 1:
         return None
     else:
         dict_lack_result = lack_strengths_in_team(df_all_exsits_null, list_users)
@@ -336,7 +339,7 @@ def update_lack_strength_1(list_users):
 @app.callback(Output('lack_strengths_2', 'children'),
               [Input('team_users', 'value')])
 def update_lack_strength_2(list_users):
-    if len(list_users) <= 1:
+    if list_users == None or len(list_users) == 1:
         return None
     else:
         dict_lack_result = lack_strengths_in_team(df_all_exsits_null, list_users)
@@ -522,20 +525,26 @@ def extract_unique_strength(
     Output('user_drop_down', 'options'),
     [Input('team_users', 'value')])
 def set_cities_options(selected_user):
-    return [{'label': i, 'value': i} for i in selected_user]
+    if selected_user == None or len(selected_user) == 1:
+        return []
+    else:
+        return [{'label': i, 'value': i} for i in selected_user]
 
 
 @app.callback(Output('user_drop_down', 'value'),
               [Input('user_drop_down', 'options')])
 def set_cities_value(available_options):
-    return available_options[0]['value']
+    if available_options == []:
+        return None
+    else:
+        return available_options[0]['value']
 
 
 @app.callback(Output('target_user', 'children'),
               [Input('team_users', 'value'),
                Input('user_drop_down', 'value')])
 def update_unique_strestrength(list_users, target_user):
-    if len(list_users) <= 1:
+    if list_users == None or len(list_users) == 1:
         return None
     else:
         text = 'このグループ内における {} さんのユニークな強みは下記の通りです。'.format(target_user)
@@ -546,7 +555,7 @@ def update_unique_strestrength(list_users, target_user):
               [Input('team_users', 'value'),
                Input('user_drop_down', 'value')])
 def update_unique_strestrength_1(list_users, target_user):
-    if len(list_users) <= 1:
+    if list_users == None or len(list_users) == 1 or target_user == None:
         return None
     else:
         dict_result = extract_unique_strength(
@@ -560,7 +569,7 @@ def update_unique_strestrength_1(list_users, target_user):
               [Input('team_users', 'value'),
                Input('user_drop_down', 'value')])
 def update_unique_strestrength_2(list_users, target_user):
-    if len(list_users) <= 1:
+    if list_users == None or len(list_users) == 1 or target_user == None:
         return None
     else:
         dict_result = extract_unique_strength(

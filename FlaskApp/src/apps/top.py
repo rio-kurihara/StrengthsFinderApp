@@ -110,25 +110,28 @@ def create_strengths_rank_list(
 
 @app.callback(Output('strengths-list', 'figure'), [Input('input_id', 'value')])
 def update_graph(list_person):
-    data = create_strengths_rank_list(
-        df_all, dict_colors_strengths, dict_strengths_desc, list_person)
+    if list_person == None:
+        return {'data': None, 'layout': None}
+    else:
+        data = create_strengths_rank_list(
+            df_all, dict_colors_strengths, dict_strengths_desc, list_person)
 
-    layout = go.Layout(
-        font=dict(size=16),
-        hovermode='closest',
-        height=1800,
-        width=1000,
-        barmode='stack',
-        showlegend=False,
-        xaxis=dict(side='top', tickangle=90),
-        yaxis=dict(
-            autorange='reversed',
-            showgrid=False,
-            zeroline=False,
-            showline=False,
-            ticks='',
-            dtick=1,
+        layout = go.Layout(
+            font=dict(size=16),
+            hovermode='closest',
+            height=1800,
+            width=1000,
+            barmode='stack',
+            showlegend=False,
+            xaxis=dict(side='top', tickangle=90),
+            yaxis=dict(
+                autorange='reversed',
+                showgrid=False,
+                zeroline=False,
+                showline=False,
+                ticks='',
+                dtick=1,
+            )
         )
-    )
 
-    return {'data': data, 'layout': layout}
+        return {'data': data, 'layout': layout}
