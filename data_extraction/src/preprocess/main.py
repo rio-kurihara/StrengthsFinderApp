@@ -1,11 +1,7 @@
-import os
 from logging import getLogger
 
 import pandas as pd
 import yaml
-
-from GNN_and_GS import GAE
-# from src.GNN_and_GS import GAE  # pytest 時のみこちらでインポートする
 
 logger = getLogger(__name__)
 
@@ -111,7 +107,7 @@ def calc_corr(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def main():
-    print('*** start preprocess ***')
+    print('*** Start preprocess ***')
 
     # settings.yaml の読み込み
     with open('settings.yaml') as f:
@@ -158,10 +154,6 @@ def main():
     df_corr_all34 = calc_corr(df_all34)
     df_corr_all34.index.name = 'user_name'
 
-    # run GAE
-    GS_config_path = config['GS_config_path']
-    GAE.main(GS_config_path)
-
     # saving
     df_vertical = df_vertical.fillna('nan')
     df_vertical.to_csv(all34_exsits_null_path, index=False)
@@ -170,7 +162,7 @@ def main():
     df_all34.to_csv(all34_path, index=False)
     df_corr_all34.to_csv(all34_corr_path)
 
-    print('saving done')
+    print('*** Finished saving preprocess data ***')
 
 
 if __name__ == "__main__":

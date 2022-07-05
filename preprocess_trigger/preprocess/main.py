@@ -49,7 +49,6 @@ def sf_app_preprocess_trigger(data, _):
             },
         }
         parent = f"projects/{project}/locations/{location}"
-        response = client.create_custom_job(parent=parent, custom_job=custom_job)
         print("preprocess triggered")
 
     else:

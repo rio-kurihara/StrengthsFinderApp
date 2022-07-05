@@ -50,27 +50,45 @@ gcloud config set project $PROJECT_ID
 ```bash
 cd data_extraction
 
-# src/settings.yaml の変更 ('base_dir'のみ変更でok)
-vim src/settings.yaml
+# 設定ファイルの変更 ('base_dir'のみ変更でok)
 vim src/GNN_and_GS/config.yaml
+vim src/preprocess/settings.yaml
 
-# Docker コンテナをローカルでビルド
-# ※ Image は 19GB 弱あります
-docker build -f Dockerfile -t $IMAGE_URI ./
-docker run -it $IMAGE_URI
+# GraphAutoEncoder 用 の Docker コンテナをローカルでビルド ※ Image は 19GB 弱あります
+docker build -f GNN_and_GS/Dockerfile -t $IMAGE_URI_GAE ./
+docker run -it $IMAGE_URI_GAE
 
 # コンテナを Container Registry に push する
-docker push $IMAGE_URI
+docker push $IMAGE_URI_GAE
+
+
+# preprocess 用 の Docker コンテナをローカルでビルド
+docker build -f preprocess/Dockerfile -t $IMAGE_URI_PREP ./
+docker run -it $IMAGE_URI_PREP
+
+# コンテナを Container Registry に push する
+docker push $IMAGE_URI_PREP
 ```
 
 Cloud Functions にデプロイする。
 ```bash
 export GOOGLE_APPLICATION_CREDENTIALS="/<path>/StrengthsFinderApp/data_extraction/src/key/key.json"
 
-cd preprocess_trigger
-
+# GAE 実行用の CloudFunctions のデプロイ
 # settings.yaml の変更 ('project_id'のみ変更でok)
-vim src/settings.yaml
+cd preprocess_trigger/GAE
+vim settings.yaml
+
+gcloud functions deploy sf_app_GAE_trigger \
+--region $REGION \
+--runtime python38 \
+--trigger-resource $BUCKET_NAME \
+--trigger-event google.storage.object.finalize
+
+# GAE 実行用の CloudFunctions のデプロイ
+# settings.yaml の変更 ('project_id'のみ変更でok)
+cd preprocess_trigger/preprocess
+vim settings.yaml
 
 gcloud functions deploy sf_app_preprocess_trigger \
 --region $REGION \

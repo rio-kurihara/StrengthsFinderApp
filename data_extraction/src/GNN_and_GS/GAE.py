@@ -366,5 +366,10 @@ def main(config_path):
         df_res.to_csv(res_cos_save_path)
 
 
-# if __name__ == '__main__':
-#     main()
+if __name__ == '__main__':
+    print('*** Start GAE ***')
+
+    config_path = 'config.yaml'
+    main(config_path)
+
+    print('*** Finished GAE ***')

@@ -2,7 +2,7 @@ from unittest import expectedFailure
 import numpy as np
 import pandas as pd
 from pandas.testing import assert_frame_equal
-from src.create_data_for_app import (
+from data_extraction.src.preprocess.main import (
     convert_vertical, check_top5_null, split_top5_and_all34, calc_corr
 )
 

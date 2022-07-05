@@ -1,0 +1,4 @@
+pandas
+PyYAML==6.0
+fsspec==2022.1.0
+gcsfs==2022.1.0
