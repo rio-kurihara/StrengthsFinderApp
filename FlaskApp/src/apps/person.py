@@ -115,7 +115,7 @@ def update_graph(target_user):
             font=dict(size=16),
             hovermode='closest',
             height=2000,
-            width=1000,
+            width=500,
             barmode='stack',
             showlegend=False,
             xaxis=dict(

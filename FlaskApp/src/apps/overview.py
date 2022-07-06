@@ -28,7 +28,8 @@ departments = config['departments']
 # GCS のバケットからファイルを読み込む
 df_top5 = pd.read_csv(top5_path, index_col='user_name')
 df_all34 = pd.read_csv(all34_path, index_col='user_name')
-dict_colors_strengths = pd.read_pickle(colors_strengths_path)
+tmp_df_colors_strengths = pd.read_json(colors_strengths_path, orient='index')
+dict_colors_strengths = tmp_df_colors_strengths[0].to_dict()
 
 
 def create_graph_strengths_rank_sum(
