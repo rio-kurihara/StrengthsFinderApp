@@ -1,9 +1,7 @@
-import numpy as np
 import json
 
 import pandas as pd
 from pandas.testing import assert_frame_equal
-from numpy import extract
 from src.apps.team import (calc_mean_and_min, create_display_text_for_lack,
                            lack_strengths_in_team, list_to_bullets_str,
                            sum_rank_each_strengths_category, extract_unique_strength,
