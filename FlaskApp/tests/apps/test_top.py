@@ -3,7 +3,7 @@ import pickle
 import pandas as pd
 import plotly
 
-from src.apps.top import create_strengths_rank_list
+from FlaskApp.src.apps.list import create_strengths_rank_list
 
 
 def test_create_strengths_rank_list():

@@ -1,137 +1,166 @@
-import os
+import base64
 
-import numpy as np
-import pandas as pd
-import plotly.graph_objs as go
-import yaml
-from app import app
-from dash import dcc, html
-from dash.dependencies import Input, Output
-from dotenv import load_dotenv
+import dash_bootstrap_components as dbc
+from dash import html
 
-# from src.app import app  # pytest のときのみこっち
 
-# .envから環境変数を読み込む
-load_dotenv()
+def b64_image(image_filename):
+    with open(image_filename, 'rb') as f:
+        image = f.read()
+    return 'data:image/png;base64,' + base64.b64encode(image).decode('utf-8')
 
-# settings.yaml の読み込み
-with open('settings.yaml') as f:
-    config = yaml.load(f, Loader=yaml.SafeLoader)
 
-# パスを設定
-bucket_name = os.getenv('BUCKET_NAME')
-bucket_path = 'gs://{}/'.format(bucket_name)
-all34_exsits_null_path = bucket_path + config['all34_exsits_null_path']
-colors_strengths_path = bucket_path + config['colors_strengths_path']
-strengths_desc_path = bucket_path + config['strengths_desc_path']
+def create_card(image_path: str, card_title: str, card_text: str, button_link: str) -> dbc.Card:
+    """
+    dash-bootstrap-components の card を作成する
 
-# GCS のバケットからファイルを読み込む
-df_all = pd.read_csv(all34_exsits_null_path, index_col='user_name')
-df_all = df_all.fillna('nan')
-dict_colors_strengths = pd.read_pickle(colors_strengths_path)
-dict_strengths_desc = pd.read_pickle(strengths_desc_path)
+    Args:
+        image_path (str): オーバーレイする画像のファイルパス
+        card_title (str): カードのタイトル
+        card_text (str): カードのテキスト（説明文）
+        button_link (str): カード内のボタンをクリックしたときに飛ぶリンク
 
-# レイアウトに追加するコンポーネントの作成
+    Return:
+        dbc.Card
+    """
+    card = dbc.Card(
+        [
+            dbc.CardImg(
+                src=b64_image(image_path),
+                top=True,
+                style={"opacity": 0.3},
+            ),
+            dbc.CardImgOverlay(
+                dbc.CardBody(
+                    [
+                        html.H5(card_title, className="card-title"),
+                        html.P(
+                            card_text,
+                            className="card-text",
+                        ),
+                        dbc.Button("Go",
+                                   outline=True,
+                                   color="secondary",
+                                   href=button_link,
+                                   external_link=True,
+                                   className="me-1"),
+                    ],
+                ),
+            ),
+        ],
+        style={"width": "14rem"},
+    )
+    return card
+
+
+# ヘッダーの定義
+welcome_message = html.H5(
+    'ストレングスファインダーWebAppへようこそ',
+    style=dict(padding="10px", borderLeft="5px #b31b1b solid")
+)
+
 header_contents = html.Div(
     [
-        html.H5('受診済みの方の資質ランキング表示',
-                style=dict(padding="10px", borderLeft="5px #b31b1b solid")),
-        html.P('参照したい方の氏名を入力してください（複数可）')
+        welcome_message,
+        html.Br()
     ]
 )
 
-unique_users = np.unique(df_all.index)
+# アップロードを促すテキストの定義
+recomend_upload = dbc.Alert(
+    [
+        html.H4("まずは受診結果をアップロードしましょう", className="alert-heading"),
+        dbc.Button("アップロードフォームへ",
+                   color="secondary",
+                   href='/data/upload',
+                   external_link=True,
+                   className="me-1"),
+        html.Hr(),
+        html.P(
+            "アップロード済みの方はダッシュボードへどうぞ↓",
+            className="mb-0",
+        ),
+    ]
+)
 
-users_drop_down_list = dcc.Dropdown(
-    id='input_id',
-    options=[{'label': i, 'value': i} for i in unique_users],
-    multi=True,
+# ダッシュボードへ誘導するためのカードを定義
+card_person = create_card(image_path='icon_images/person.png',
+                          card_title='他の人の結果を見てみましょう',
+                          card_text='アップロード済みのメンバーの受診結果を見ることができます',
+                          button_link='/list')
+
+card_team = create_card(image_path='icon_images/team.png',
+                        card_title='共通の強みは何でしょうか',
+                        card_text='足りない要素を見ることもできます',
+                        button_link='/dashboard/team')
+
+card_matching = create_card(image_path='icon_images/matching.png',
+                            card_title='メンターメンティーマッチング',
+                            card_text='メンター集合とメンティー集合を入力すると、組み合わせを提示します',
+                            button_link='/dashboard/matching')
+
+card_overview = create_card(image_path='icon_images/overview.png',
+                            card_title='所属部署の傾向を見てみましょう',
+                            card_text='各部署の傾向を見ることができます',
+                            button_link='/overview')
+
+card_setting = dbc.Card(
+    [
+        dbc.CardImg(
+            src=b64_image('icon_images/setting.png'),
+            top=True,
+            style={"opacity": 0.3},
+        ),
+        dbc.CardImgOverlay(
+            dbc.CardBody(
+                [
+                    html.H5('データの編集・削除はこちらから', className="card-title"),
+                    html.P('', className="card-text"),
+                    dbc.Button("編集",
+                               outline=True,
+                               color="secondary",
+                               href='/data/edit',
+                               external_link=True,
+                               className="me-1"),
+                    dbc.Button("削除",
+                               outline=True,
+                               color="secondary",
+                               href='/data/delete',
+                               external_link=True,
+                               className="me-1"),
+                ],
+            ),
+        ),
+    ],
+    style={"width": "14rem"},
+)
+
+row_content = dbc.Row(
+    [
+        dbc.Row(
+            dbc.Col(recomend_upload, width={"size": 8})
+        ),
+        html.P(),
+        html.P(),
+        dbc.Row(
+            [
+                dbc.Col(card_person, width={"size": 2}),
+                dbc.Col(card_overview, width={"size": 2}),
+                dbc.Col(card_team, width={"size": 2}),
+                dbc.Col(card_matching, width={"size": 2}),
+            ]
+        ),
+        html.P(),
+        html.P(),
+        dbc.Row(
+            dbc.Col(card_setting, width={"size": 2})
+        ),
+    ],
 )
 
 layout = html.Div(
     [
         header_contents,
-        users_drop_down_list,
-        dcc.Graph(id='strengths-list'),
+        row_content
     ]
 )
-
-
-def create_strengths_rank_list(
-    df: pd.DataFrame, dict_colors_strengths: dict, dict_strengths_desc: dict, list_person: list
-) -> list:
-    """ユーザーの資質一覧を表示するためのグラフオブジェクトを作成
-
-    Args:
-        df (pd.DataFrame): 全ユーザーの資質ランキング
-        dict_colors_strengths (dict): 各資質のカラーコード
-                                    ex: {'責任感': '#ffbcdd', '達成欲': '#ffbcdd', ...}
-        dict_strengths_desc (dict): 各資質の説明
-                                    ex: {'収集心': '収集や蓄積を必要とします',
-                                        '分析思考': '物事の理由と原因を追究します',
-                                        ...}
-        list_person (list): 任意のユーザー名のリスト
-
-    Returns:
-        list: グラフオブジェクトのリスト
-    """
-
-    data = []
-    num_strengths = 35
-
-    for i_th in range(1, num_strengths):
-
-        i_th_strenghts = list(df[df['rank'] == i_th].loc[list_person]['strengths'])
-        colors_for_strenghts = [dict_colors_strengths[_x] for _x in i_th_strenghts]
-
-        marker = dict(
-            color=colors_for_strenghts,
-            line=dict(color='rgb(8,48,107)', width=1.5)
-        )
-
-        description_for_strengths = [dict_strengths_desc[_x] for _x in i_th_strenghts]
-        i_th_strenghts_for_display = [_x.replace(_x, 'コミュニ<br>ケ―ション')
-                                      if _x == 'コミュニケーション' else _x for _x in i_th_strenghts]
-
-        trace = go.Bar(
-            x=list_person,
-            y=[1] * len(list_person),
-            marker=marker,
-            hoverinfo='text',
-            hovertext=description_for_strengths,
-            text=i_th_strenghts_for_display,
-            textposition='inside'
-        )
-
-        data.append(trace)
-
-    return data
-
-
-@app.callback(Output('strengths-list', 'figure'), [Input('input_id', 'value')])
-def update_graph(list_person):
-    if list_person == None:
-        return {'data': None, 'layout': None}
-    else:
-        data = create_strengths_rank_list(
-            df_all, dict_colors_strengths, dict_strengths_desc, list_person)
-
-        layout = go.Layout(
-            font=dict(size=16),
-            hovermode='closest',
-            height=1800,
-            width=1000,
-            barmode='stack',
-            showlegend=False,
-            xaxis=dict(side='top', tickangle=90),
-            yaxis=dict(
-                autorange='reversed',
-                showgrid=False,
-                zeroline=False,
-                showline=False,
-                ticks='',
-                dtick=1,
-            )
-        )
-
-        return {'data': data, 'layout': layout}

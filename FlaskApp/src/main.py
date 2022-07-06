@@ -2,8 +2,9 @@ from dash import dcc, html
 from dash.dependencies import Input, Output
 
 from app import app
-from apps import (custom_error, data_delete, download, data_edit, matching,
-                  overview, person, qa, team, top, upload, upload_result)
+from apps import (custom_error, data_delete, data_edit, download, list,
+                  matching, overview, person, qa, team, top, upload,
+                  upload_result)
 from navigation_menu import nav_menu
 
 server = app.server
@@ -19,32 +20,13 @@ app.layout = html.Div(
 )
 
 
-welcome_message = html.H5(
-    'ストレングスファインダーWebAppへようこそ',
-    style=dict(padding="10px", borderLeft="5px #b31b1b solid")
-)
-
-header_contents = html.Div(
-    [
-        welcome_message,
-        html.Br()
-    ]
-)
-
-route_layout = html.Div(
-    [
-        header_contents,
-    ]
-)
-
-
 @app.callback(Output('page-content', 'children'),
               Input('url', 'pathname'))
 def display_page(pathname):
     if pathname == '/':
-        return route_layout
-    elif pathname == '/top':
         return top.layout
+    elif pathname == '/list':
+        return list.layout
     elif pathname == '/overview':
         return overview.layout
     elif pathname == '/dashboard/person':
