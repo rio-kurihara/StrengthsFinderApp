@@ -178,6 +178,9 @@ layout = html.Div(
               State('pdf-upload', 'filename'))
 # ユーザーからファイルがアップロードされると以下の処理が走る（この時点で中身はbinary）
 def update_output(contents, filename):
+    #  保存先のディレクトリを作成
+    os.makedirs(tmp_pdf_save_dir, exist_ok=True)
+
     if contents is None:
         return [{}], [], ''
     # PDF ファイル以外がアップロードされた場合はエラーメッセージを表示する
@@ -198,8 +201,6 @@ def update_output(contents, filename):
         #  保存するファイル名を生成（"現在日時＋アップロード時のファイル名.pdf"）
         save_fname = create_fname_for_save_pdf(filename)
         local_save_path = os.path.join(tmp_pdf_save_dir, save_fname)
-        #  保存先のディレクトリを作成
-        os.makedirs(tmp_pdf_save_dir, exist_ok=True)
         #  ローカルに保存
         save_pdf_to_local(contents, local_save_path)
 
