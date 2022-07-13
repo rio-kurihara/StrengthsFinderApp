@@ -12,7 +12,7 @@ with open('settings.yaml') as f:
     config = yaml.load(f, Loader=yaml.SafeLoader)
 
 # パスを設定
-tmp_pdf_save_dir = config['tmp_pdf_save_dir']
+tmp_pdf_save_dir = '/tmp/'
 # 入力データが正しかったかどうかのステータスをもつ json
 input_state_path = os.path.join(tmp_pdf_save_dir, 'input_check_state.json')
 

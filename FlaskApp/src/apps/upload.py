@@ -27,7 +27,7 @@ with open('settings.yaml') as f:
 # パスを設定
 bucket_name = os.getenv('BUCKET_NAME')
 bucket_path = 'gs://{}/'.format(bucket_name)
-tmp_pdf_save_dir = config['tmp_pdf_save_dir']
+tmp_pdf_save_dir = '/tmp/'
 strengths_path = bucket_path + config['strengths_path']
 demogra_path = bucket_path + config['demogra_path']
 # バックアップ用の csv は "ファイル名_bkup_日付.csv"

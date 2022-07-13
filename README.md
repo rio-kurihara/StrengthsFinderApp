@@ -48,11 +48,11 @@ gcloud config set project $PROJECT_ID
 
 次に、コンテナを Container Registry にプッシュする。
 ```bash
-cd data_extraction
+cd data_extraction/src
 
 # 設定ファイルの変更 ('base_dir'のみ変更でok)
-vim src/GNN_and_GS/config.yaml
-vim src/preprocess/settings.yaml
+vim GNN_and_GS/config.yaml
+vim preprocess/settings.yaml
 
 # GraphAutoEncoder 用 の Docker コンテナをローカルでビルド ※ Image は 19GB 弱あります
 docker build -f GNN_and_GS/Dockerfile -t $IMAGE_URI_GAE ./
